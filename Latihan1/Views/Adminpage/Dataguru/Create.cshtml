@@ -1,0 +1,319 @@
+﻿@model Latihan1.Models.GuruModel
+@using Microsoft.AspNetCore.Mvc.Rendering
+@using System.Linq
+@{
+    ViewData["Title"] = "Tambah Guru";
+    var mapelList = ViewBag.MapelList as IEnumerable<SelectListItem>
+                    ?? Enumerable.Empty<SelectListItem>();
+}
+
+<div class="mx-auto max-w-4xl px-4 py-6">
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <!-- Header -->
+        <div class="flex items-center justify-between gap-3 border-b border-slate-200 px-6 py-4">
+            <div>
+                <h1 class="text-lg font-semibold tracking-tight">Tambah Guru</h1>
+                <p class="text-xs text-slate-500">Isi data guru dengan lengkap lalu simpan.</p>
+            </div>
+            <a asp-controller="Dataguru" asp-action="Teacher_data"
+               class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                Kembali
+            </a>
+        </div>
+
+        <!-- Notifikasi validasi -->
+        <div asp-validation-summary="ModelOnly"
+             class="mx-6 mt-5 hidden rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+             data-val-summary>
+        </div>
+
+        <!-- Form -->
+        <form method="post"
+              asp-controller="Dataguru"
+              asp-action="Create"
+              class="px-6 py-5 space-y-5">
+            @Html.AntiForgeryToken()
+
+            <!-- Nama & Mapel -->
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div>
+                    <label asp-for="Nama" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+                        Nama
+                    </label>
+                    <input asp-for="Nama"
+                           class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm
+                      focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200" />
+                    <span asp-validation-for="Nama" class="mt-1 block text-sm text-red-600"></span>
+                </div>
+
+                <!-- Multi-select Mapel (dropdown + search + badge) -->
+                <div class="relative">
+                    <label asp-for="MapelIds" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+                        Mata Pelajaran
+                    </label>
+
+                    <!-- BOX YANG DIKLIK -->
+                    <div id="mapelBox"
+                         class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm cursor-pointer flex flex-wrap gap-2 min-h-[45px] items-center">
+                        <span id="placeholder" class="text-slate-400">Pilih mata pelajaran...</span>
+                    </div>
+
+                    <!-- DROPDOWN -->
+                    <div id="dropdownMapel"
+                         class="hidden absolute z-20 mt-1 w-full bg-white border border-slate-300 rounded-xl shadow-lg max-h-64 overflow-y-auto">
+
+                        <!-- search -->
+                        <div class="p-2 sticky top-0 bg-white border-b border-slate-200">
+                            <input id="searchMapel" type="text"
+                                   placeholder="Cari mata pelajaran..."
+                                   class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" />
+                        </div>
+
+                        <ul id="mapelList" class="py-2 px-1 text-sm"></ul>
+                    </div>
+
+                    <p class="mt-1 text-xs text-slate-400">
+                        Klik beberapa mata pelajaran untuk memilih lebih dari satu.
+                    </p>
+
+                    <span asp-validation-for="MapelIds" class="mt-1 block text-sm text-red-600"></span>
+                </div>
+            </div>
+
+            <!-- NIP & Email -->
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div>
+                    <label asp-for="NIP" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+                        NIP
+                    </label>
+                    <input asp-for="NIP" inputmode="numeric"
+                           class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm
+                                  focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200" />
+                    <span asp-validation-for="NIP" class="mt-1 block text-sm text-red-600"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Email" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+                        Email
+                    </label>
+                    <input asp-for="Email" type="email"
+                           class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm
+                                  focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200" />
+                    <span asp-validation-for="Email" class="mt-1 block text-sm text-red-600"></span>
+                </div>
+            </div>
+
+            <!-- Jam Mengajar & Status -->
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+    <div>
+        <label asp-for="JamMengajar" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+            Jam Mengajar
+        </label>
+        <input asp-for="JamMengajar" type="number" disabled
+               class="mt-1 block w-full rounded-xl border border-slate-300 bg-slate-100 px-3 py-2.5 text-sm shadow-sm cursor-not-allowed" />
+        <input type="hidden" asp-for="JamMengajar" />
+        <span asp-validation-for="JamMengajar" class="mt-1 block text-sm text-red-600"></span>
+    </div>
+
+    <div>
+        <label asp-for="IsActive" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+            Status
+        </label>
+        <select asp-for="IsActive"
+                class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm
+                       focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200">
+            <option value="true">Aktif</option>
+            <option value="false">Tidak Aktif</option>
+        </select>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+    <div>
+        <label asp-for="MaxWeeklyLoad" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+            Max Mingguan (jam)
+        </label>
+        <input asp-for="MaxWeeklyLoad" type="number" min="0" step="1"
+               class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm
+                      focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200" />
+        <span asp-validation-for="MaxWeeklyLoad" class="mt-1 block text-sm text-red-600"></span>
+    </div>
+
+    <div>
+        <label asp-for="MaxDailyLoad" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+            Max Harian (jam)
+        </label>
+        <input asp-for="MaxDailyLoad" type="number" min="0" step="1"
+               class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm
+                      focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200" />
+        <span asp-validation-for="MaxDailyLoad" class="mt-1 block text-sm text-red-600"></span>
+    </div>
+</div>
+
+            <!-- Action bar -->
+            <div class="flex items-center justify-end gap-3 border-t border-slate-200 pt-4">
+                <a asp-controller="Dataguru" asp-action="Teacher_data"
+                   class="inline-flex items-center rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                    Batal
+                </a>
+                <button type="submit"
+                        class="inline-flex items-center rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow
+                               hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    Simpan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Tampilkan summary hanya jika ada error
+        (function () {
+            const sum = document.querySelector('[data-val-summary]');
+            if (!sum) return;
+            const hasErr = sum.querySelector('ul li');
+            if (hasErr) sum.classList.remove('hidden');
+        })();
+    </script>
+
+    @* Dropdown Mata Pelajaran (MAX 3) *@
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const box        = document.getElementById("mapelBox");
+            const dropdown   = document.getElementById("dropdownMapel");
+            const search     = document.getElementById("searchMapel");
+            const list       = document.getElementById("mapelList");
+            const placeholder = document.getElementById("placeholder");
+
+            if (!box || !dropdown || !search || !list || !placeholder) return;
+
+            // ==== DATA MAPEL DARI SERVER ====
+            const mapels = [
+            @foreach (var item in mapelList)
+            {
+                    <text>{
+                        id: "@item.Value",
+                        text: "@item.Text"
+                    },</text>
+            }
+            ];
+
+            // ==== MAPEL TERPILIH DARI MODEL (kalau post gagal validasi) ====
+            const selectedFromModel = [
+            @{
+                    var arr = Model.MapelIds ?? Array.Empty<int>();
+                    for (int i = 0; i < arr.Length; i++)
+                    {
+                            var comma = i < arr.Length - 1 ? "," : "";
+                            @: "@arr[i]"@comma
+                    }
+            }
+            ];
+
+            const toStrArr = (arr) =>
+                arr.filter(x => x !== null && x !== undefined && x !== "")
+                   .map(x => x.toString());
+
+            let selected = toStrArr(selectedFromModel);   // ["3","5",...]
+            let currentFilter = "";
+
+            // ==== RENDER DROPDOWN ====
+            function renderDropdown(filter = "") {
+                currentFilter = filter.toLowerCase();
+                const filtered = mapels.filter(m =>
+                    m.text.toLowerCase().includes(currentFilter)
+                );
+
+                list.innerHTML = filtered.map(m => {
+                    const idStr     = m.id.toString();
+                    const isChecked = selected.includes(idStr);
+                    return `
+                        <li class="mapel-item flex items-center gap-2 px-3 py-2 hover:bg-slate-50 cursor-pointer"
+                            data-id="${idStr}">
+                            <input type="checkbox"
+                                   class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                   ${isChecked ? "checked" : ""} />
+                            <span>${m.text}</span>
+                        </li>
+                    `;
+                }).join("");
+
+                // klik satu baris -> toggle
+                list.querySelectorAll(".mapel-item").forEach(li => {
+                    li.addEventListener("click", () => {
+                        const id = li.getAttribute("data-id");
+                        toggleSelect(id);
+                    });
+                });
+            }
+
+            // ==== TOGGLE PILIHAN (BATAS 3) ====
+            function toggleSelect(value) {
+                const v = value.toString();
+
+                if (selected.includes(v)) {
+                    selected = selected.filter(x => x !== v);
+                } else {
+                    selected.push(v);
+                }
+
+                renderSelected();
+                renderDropdown(currentFilter);  // sync ceklis
+            }
+
+            // ==== RENDER BADGE + HIDDEN INPUT ====
+            function renderSelected() {
+                box.innerHTML = "";
+
+                if (selected.length === 0) {
+                    placeholder.classList.remove("hidden");
+                    box.appendChild(placeholder);
+                    placeholder.innerText = "Pilih mata pelajaran...";
+                    return;
+                }
+
+                placeholder.classList.add("hidden");
+
+                selected.forEach(id => {
+                    const item = mapels.find(m => m.id.toString() === id);
+                    if (!item) return;
+
+                    // badge
+                    const tag = document.createElement("span");
+                    tag.className = "px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700";
+                    tag.innerText = item.text;
+                    box.appendChild(tag);
+
+                    // hidden input supaya terkirim ke server
+                    const hidden = document.createElement("input");
+                    hidden.type  = "hidden";
+                    hidden.name  = "MapelIds";
+                    hidden.value = id;
+                    box.appendChild(hidden);
+                });
+            }
+
+            // ==== EVENT ====
+            box.addEventListener("click", () => {
+                dropdown.classList.toggle("hidden");
+            });
+
+            document.addEventListener("mousedown", (e) => {
+                if (!box.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.add("hidden");
+                }
+            });
+
+            search.addEventListener("input", () => {
+                renderDropdown(search.value);
+            });
+
+            // INIT
+            renderSelected();
+            renderDropdown();
+        });
+    </script>
+}

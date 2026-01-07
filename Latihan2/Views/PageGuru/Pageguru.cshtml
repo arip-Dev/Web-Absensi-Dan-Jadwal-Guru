@@ -1,0 +1,273 @@
+﻿@model Latihan2.Controllers.PageGuruController.GuruDashboardVm
+@{
+    ViewData["Title"] = "Dashboard Guru";
+    ViewData["HideSidebar"] = true;
+
+    string Day(int d) => new[] { "-", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu" }[Math.Clamp(d, 0, 7)];
+    var allDays = new[] { 1, 2, 3, 4, 5, 6 };
+
+    // PERBAIKAN: Gunakan URL Logout lokal (Latihan2)
+    // Ini akan memanggil AuthController.Logout() -> Hapus Cookie -> Redirect ke Login
+    var logoutUrl = "/Auth/Logout";
+
+    var totalMinutes = Model.Items.Sum(x => (x.Selesai - x.Mulai).TotalMinutes);
+    var totalHours = Math.Round(totalMinutes / 60.0, 1);
+
+    var maxWeekly = Model.Guru.MaxWeeklyLoad;
+    var ratio = maxWeekly > 0 ? totalHours / maxWeekly : 0;
+    var badgeClass = ratio >= 1 ? "bg-rose-100 text-rose-700"
+                    : ratio >= 0.75 ? "bg-amber-100 text-amber-700"
+                    : "bg-emerald-100 text-emerald-700";
+}
+
+<div class="mx-auto max-w-6xl px-4 py-6">
+    <header class="sticky top-0 z-10 mb-6 rounded-2xl border border-slate-200 bg-white/80 backdrop-blur px-5 py-3 shadow-sm">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="grid h-10 w-10 place-items-center rounded-xl bg-slate-900 text-white shadow-inner">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 12a5 5 0 1 0-5-5 5.006 5.006 0 0 0 5 5Zm6 8.25A7.5 7.5 0 0 0 4.5 20.25a.75.75 0 0 1-1.5 0A9 9 0 0 1 21 20.25a.75.75 0 0 1-1.5 0Z" />
+                    </svg>
+                </div>
+                <div>
+                    <div class="text-sm text-slate-500">Dashboard Guru</div>
+                    <div class="text-base font-semibold leading-tight text-slate-900">Halo, @Model.Guru.Nama</div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button id="btnLogout" type="button"
+                        class="fixed bottom-5 right-5 inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-lg hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-300 z-50">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M16 13v-2H7V8l-5 4 5 4v-3h9zM20 3h-8v2h8v14h-8v2h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z" />
+                    </svg>
+                    Keluar
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <section class="mb-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+
+            <div class="flex items-start gap-4">
+                @if (!string.IsNullOrEmpty(Model.Guru.QRCodeBase64))
+                {
+                    <div class="flex-shrink-0 cursor-pointer group" onclick="showQrModal()">
+                        <div class="relative h-20 w-20 overflow-hidden rounded-xl border border-slate-200 p-1 shadow-sm hover:shadow-md transition">
+                            <img src="@Model.Guru.QRCodeBase64" alt="QR" class="h-full w-full object-contain" />
+                            <div class="absolute inset-0 flex items-center justify-center bg-black/10 opacity-0 group-hover:opacity-100 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-800 drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="mt-1 text-center text-[10px] text-slate-400 group-hover:text-blue-600">Klik untuk perbesar</div>
+                    </div>
+                }
+
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight text-slate-900">Jadwal Mingguan</h1>
+                    <div class="mt-2 space-y-1 text-sm text-slate-600">
+                        <p class="flex items-center gap-2">
+                            <span class="w-12 text-slate-400">NIP</span>
+                            <span class="font-medium text-slate-900">@Model.Guru.NIP</span>
+                        </p>
+                        <p class="flex items-center gap-2">
+                            <span class="w-12 text-slate-400">Mapel</span>
+                            <span class="font-medium text-slate-900">@Model.Guru.MapelNama</span>
+                        </p>
+                        <p class="flex items-center gap-2">
+                            <span class="w-12 text-slate-400">Email</span>
+                            <span class="font-medium text-slate-900">@Model.Guru.Email</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid w-full sm:w-auto grid-cols-3 gap-3">
+                <div class="rounded-2xl border border-slate-200 p-4 text-center">
+                    <div class="text-xs uppercase tracking-wide text-slate-500">Jam Mengajar</div>
+                    <div class="mt-1 text-2xl font-bold">@totalHours<span class="text-base font-semibold"> jam</span></div>
+                    <div class="mt-2 inline-flex items-center gap-2 rounded-full px-2.5 py-0.5 text-[11px] @badgeClass">
+                        Target @maxWeekly • @(Math.Min(100, (int)(ratio * 100)))%
+                    </div>
+                </div>
+                <div class="rounded-2xl border border-slate-200 p-4 text-center">
+                    <div class="text-xs uppercase tracking-wide text-slate-500">Status</div>
+                    <div class="mt-1 text-2xl font-bold">@((Model.Guru.IsActive) ? "Aktif" : "Tidak Aktif")</div>
+                </div>
+                <div class="rounded-2xl border border-slate-200 p-4 text-center">
+                    <div class="text-xs uppercase tracking-wide text-slate-500">Batas Mingguan</div>
+                    <div class="mt-1 text-2xl font-bold">@Model.Guru.MaxWeeklyLoad</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="mb-3 flex items-center justify-between">
+            <span class="text-sm text-slate-500">Tampilkan jadwal per hari</span>
+            <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                Total @Model.Items.Count() pertemuan
+            </span>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+            @foreach (var d in allDays)
+            {
+                var list = Model.Items
+                .Where(x => x.Hari == d)
+                .OrderBy(x => x.Mulai)
+                .ThenBy(x => x.Selesai)
+                .ToList();
+
+                <div class="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md">
+                    <div class="mb-3 flex items-center justify-between">
+                        <div class="text-lg font-semibold text-slate-900">@Day(d)</div>
+                        <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] text-slate-700">@list.Count item</span>
+                    </div>
+
+                    @if (list.Count == 0)
+                    {
+                        <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+                            Tidak ada jadwal pada hari @Day(d).
+                        </div>
+                    }
+                    else
+                    {
+                        <ul class="space-y-2">
+                            @foreach (var r in list)
+                            {
+                                <li class="rounded-xl bg-blue-50 p-3 ring-1 ring-blue-100">
+                                    <div class="flex items-center justify-between">
+                                        <div class="text-sm font-semibold text-blue-900">
+                                            @r.Mulai.ToString(@"hh\:mm") – @r.Selesai.ToString(@"hh\:mm")
+                                        </div>
+                                        <span class="rounded-full bg-white/70 px-2 py-0.5 text-[11px] font-medium text-blue-900 ring-1 ring-blue-100">
+                                            @r.Mapel
+                                        </span>
+                                    </div>
+                                    <div class="mt-1 text-sm text-blue-800">
+                                        @r.KelasNama@(string.IsNullOrWhiteSpace(r.Ruangan) ? "" : $" / {r.Ruangan}")
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            }
+        </div>
+    </section>
+
+    <div id="logoutModal" class="hidden fixed inset-0 z-50" aria-hidden="true">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-[1px]" id="logoutOverlay"></div>
+    <div class="absolute inset-0 grid place-items-center px-4 pointer-events-none">
+        <div class="w-full max-w-md rounded-2xl bg-white shadow-xl ring-1 ring-slate-200 pointer-events-auto">
+            <div class="px-6 pt-5">
+                <h3 class="text-lg font-semibold text-slate-900">Keluar dari Dashboard?</h3>
+                <p class="mt-1 text-sm text-slate-600">Anda akan kembali ke halaman login dan sesi Anda akan dihapus.</p>
+            </div>
+            <div class="mt-6 flex items-center justify-end gap-2 px-6 pb-5">
+                <button type="button" 
+                        class="rounded-xl border border-slate-200 px-4 py-2 text-slate-700 hover:bg-slate-50" 
+                        id="logoutCancel">Batal</button>
+                
+                <a href="/guru/Auth/Logout" 
+                   class="rounded-xl bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 transition shadow-sm font-medium" 
+                   id="logoutConfirm">Keluar</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <div id="qrModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity" tabindex="-1" aria-hidden="true">
+        <div class="relative w-full max-w-sm rounded-2xl bg-white shadow-2xl ring-1 ring-gray-200">
+            <button type="button" onclick="closeQrModal()" class="absolute right-4 top-4 rounded-lg bg-gray-100 p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-900 focus:outline-none">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 14 14" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" /></svg>
+            </button>
+            <div class="p-6 text-center">
+                <h3 class="mb-1 text-lg font-semibold text-gray-900">@Model.Guru.Nama</h3>
+                <p class="mb-4 text-sm text-gray-500">NIP: @Model.Guru.NIP</p>
+
+                @if (!string.IsNullOrEmpty(Model.Guru.QRCodeBase64))
+                {
+                    <div class="mx-auto mb-6 flex h-64 w-64 items-center justify-center rounded-xl bg-gray-50 border border-gray-200 p-2 shadow-inner">
+                        <img src="@Model.Guru.QRCodeBase64" alt="QR Code" class="h-full w-full object-contain mix-blend-multiply" />
+                    </div>
+                    <div class="flex items-center justify-center gap-3">
+                        <a href="@Model.Guru.QRCodeBase64" download="QR_@(Model.Guru.Nama.Replace(" ", "_")).png" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-700">
+                            Unduh
+                        </a>
+                        <button onclick="closeQrModal()" type="button" class="rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-500 hover:bg-gray-100">Tutup</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // === LOGIC LOGOUT MODAL ===
+    (function () {
+        const modal = document.getElementById('logoutModal');
+        const btnOpen = document.getElementById('btnLogout'); // Pastikan id tombol di header adalah btnLogout
+        const btnCancel = document.getElementById('logoutCancel');
+        const overlay = document.getElementById('logoutOverlay');
+
+        const showModal = () => {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        };
+
+        const hideModal = () => {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        };
+
+        // Event Listeners
+        btnOpen?.addEventListener('click', showModal);
+        btnCancel?.addEventListener('click', hideModal);
+        overlay?.addEventListener('click', hideModal);
+
+        // Menutup dengan tombol Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                hideModal();
+            }
+        });
+    })();
+
+    // === LOGIC QR MODAL (Biarkan tetap sama) ===
+    const qrModal = document.getElementById('qrModal');
+
+    function showQrModal() {
+        if (qrModal) {
+            qrModal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+    }
+
+    function closeQrModal() {
+        if (qrModal) {
+            qrModal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+    }
+
+    qrModal?.addEventListener('mousedown', (e) => {
+        if (e.target === qrModal) closeQrModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const logoutModal = document.getElementById('logoutModal');
+            if (!logoutModal.classList.contains('hidden')) {
+                logoutModal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+            closeQrModal();
+        }
+    });
+</script>

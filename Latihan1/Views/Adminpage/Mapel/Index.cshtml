@@ -1,0 +1,59 @@
+﻿@using Latihan1.Models
+@model IEnumerable<Latihan1.Models.MapelListItemVm>
+@{
+    ViewData["Title"] = "Kelola Mapel";
+}
+
+<div class="mx-auto max-w-5xl px-4 py-6">
+    <div class="mb-4 flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold">Kelola Mapel</h1>
+            <p class="text-slate-500 text-sm">CRUD mata pelajaran</p>
+        </div>
+        <a asp-controller="Mapel" asp-action="Create"
+           class="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">Tambah Mapel</a>
+    </div>
+
+    @if (TempData["ok"] is string ok)
+    {
+        <div class="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-800">@ok</div>
+    }
+    @if (TempData["err"] is string err)
+    {
+        <div class="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-red-800">@err</div>
+    }
+
+    <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+        <table class="min-w-full text-sm">
+            <thead class="bg-slate-100 text-left">
+                <tr>
+                    <th class="px-4 py-2">Kode</th>
+                    <th class="px-4 py-2">Nama</th>
+                    <th class="px-4 py-2"># Guru</th>
+                    <th class="px-4 py-2">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+                @foreach (var m in Model)
+                {
+                    <tr>
+                        <td class="px-4 py-2 font-mono">@m.Kode</td>
+                        <td class="px-4 py-2">@m.Nama</td>
+                        <td class="px-4 py-2">@m.Count</td>
+                        <td class="px-4 py-2">
+                            <div class="flex items-center gap-3">
+                                <a asp-controller="Mapel" asp-action="Edit" asp-route-id="@m.Id"
+                                   class="text-blue-700 hover:underline">Edit</a>
+                                <form asp-controller="Mapel" asp-action="Delete" asp-route-id="@m.Id" method="post"
+                                      onsubmit="return confirm('Hapus mapel ini?');">
+                                    @Html.AntiForgeryToken()
+                                    <button class="text-red-700 hover:underline">Hapus</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

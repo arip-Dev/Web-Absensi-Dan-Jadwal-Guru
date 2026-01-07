@@ -1,0 +1,16 @@
+{
+  "scripts": {
+    "dev:css": "npx @tailwindcss/cli -i Styles/tailwind.css -o wwwroot/css/site.css --watch",
+    "dev:web": "dotnet watch run",
+    "dev": "concurrently \"npm:dev:css\" \"npm:dev:web\"",
+    "build:css": "npx @tailwindcss/cli -i Styles/tailwind.css -o wwwroot/css/site.css"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.14",
+    "tailwindcss": "^4.1.14"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+, "-vs-binding":{"ProjectOpened":["dev"]}
+}

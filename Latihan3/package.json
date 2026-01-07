@@ -1,0 +1,24 @@
+{
+  "name": "latihan3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev:css": "npx @tailwindcss/cli -i Styles/Tailwind.css -o wwwroot/css/site.css --watch",
+    "dev:web": "dotnet watch run",
+    "dev": "concurrently \"npm:dev:css\" \"npm:dev:web\"",
+    "build:css": "npx @tailwindcss/cli -i Styles/Tailwind.css -o wwwroot/css/site.css"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.17",
+    "tailwindcss": "^4.1.17"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+, "-vs-binding":{"ProjectOpened":["dev"]}
+}

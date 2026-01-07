@@ -1,0 +1,58 @@
+﻿@model Latihan1.Models.KelasJadwalVm
+@{
+    ViewData["Title"] = $"Jadwal Kelas {Model.Kelas.Tingkat}-{Model.Kelas.Nama}";
+    Layout = "_Layout";
+    string Day(int d) => new[] { "-", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu" }
+                         [Math.Clamp(d, 0, 7)];
+}
+
+<section class="mx-auto max-w-7xl px-4 py-8">
+    <div class="mb-6 flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight">
+                Jadwal • @Model.Kelas.Tingkat-@Model.Kelas.Nama
+            </h1>
+            <p class="text-slate-500">Tampilkan semua pelajaran di kelas ini</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <a asp-controller="Kelas" asp-action="DownloadCsv" asp-route-id="@Model.Kelas.Id"
+               class="rounded-xl border px-4 py-2 text-slate-700 hover:bg-slate-50">⬇ CSV</a>
+            <a asp-controller="Kelas" asp-action="DownloadPdf" asp-route-id="@Model.Kelas.Id"
+               class="rounded-xl bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">⬇ PDF</a>
+
+            <a asp-controller="Kelas" asp-action="Index" asp-route-tingkat="@Model.Kelas.Tingkat"
+               class="rounded-xl border px-4 py-2 text-slate-700 hover:bg-slate-50">← Kembali</a>
+        </div>
+    </div>
+
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-50">
+                <tr class="text-left text-sm font-semibold text-slate-700">
+                    <th class="px-6 py-3">Hari</th>
+                    <th class="px-6 py-3">Waktu</th>
+                    <th class="px-6 py-3">Mapel</th>
+                    <th class="px-6 py-3">Guru</th>
+                    <th class="px-6 py-3">Ruangan</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-sm">
+                @foreach (var r in Model.Items)
+                {
+                    <tr>
+                        <td class="px-6 py-3">@Day(r.Hari)</td>
+                        <td class="px-6 py-3">@r.Mulai.ToString(@"hh\:mm") - @r.Selesai.ToString(@"hh\:mm")</td>
+                        <td class="px-6 py-3"><span class="rounded-full bg-slate-100 px-3 py-1">@r.Mapel</span></td>
+                        <td class="px-6 py-3">@r.GuruNama</td>
+                        <td class="px-6 py-3">@r.Ruangan</td>
+                    </tr>
+                }
+                @if (!Model.Items.Any())
+                {
+                    <tr><td class="px-6 py-6 text-slate-500" colspan="5">Belum ada jadwal.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

@@ -1,0 +1,101 @@
+﻿@{
+    Layout = null;
+    ViewData["Title"] = "Login Guru";
+}
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50">
+
+    <div class="h-screen overflow-hidden relative isolate bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <div class="pointer-events-none absolute -top-20 -left-32 h-64 w-64 rounded-full blur-3xl opacity-30 bg-gray-300"></div>
+        <div class="pointer-events-none absolute -bottom-24 -right-28 h-72 w-72 rounded-full blur-3xl opacity-30 bg-gray-300"></div>
+
+        <div class="absolute top-6 left-6 z-10">
+            <a href="/"
+               class="group flex items-center gap-2 rounded-xl bg-white/80 px-4 py-2 text-sm font-medium text-gray-600 shadow-sm ring-1 ring-gray-200 backdrop-blur hover:bg-white hover:text-gray-900 hover:ring-gray-300 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Kembali
+            </a>
+        </div>
+
+        <div class="w-full max-w-md px-4">
+            <div class="bg-white/90 backdrop-blur shadow-xl rounded-3xl ring-1 ring-gray-200">
+                <div class="px-8 pt-8 text-center">
+                    <div class="mx-auto mb-4 grid place-items-center h-12 w-12 rounded-2xl shadow-inner shadow-gray-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-900" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 12a5 5 0 1 0-5-5 5.006 5.006 0 0 0 5 5Zm6 8.25A7.5 7.5 0 0 0 4.5 20.25a.75.75 0 0 1-1.5 0A9 9 0 0 1 21 20.25a.75.75 0 0 1-1.5 0Z" />
+                        </svg>
+                    </div>
+                    <h1 class="text-2xl font-bold tracking-tight text-gray-900">Login Guru</h1>
+                    <p class="mt-1 mb-4 text-sm text-gray-500">Silakan masuk menggunakan NIP & Password Anda.</p>
+                </div>
+
+                <div class="px-8 pb-8">
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                            @ViewBag.Error
+                        </div>
+                    }
+
+                    <form method="post" action="/guru/Auth/Login" class="space-y-5">
+                        @Html.AntiForgeryToken()
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Username / NIP</label>
+                            <div class="relative">
+                                <input type="text" name="nip" required
+                                       class="peer block w-full rounded-2xl border border-gray-300 bg-white px-3 py-2.5 pr-10 text-gray-900 shadow-sm outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition"
+                                       placeholder="Masukkan NIP Anda" />
+                                <span class="pointer-events-none absolute inset-y-0 right-3 grid place-items-center text-gray-400 peer-focus:text-gray-900">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 12a5 5 0 1 0-5-5 5.006 5.006 0 0 0 5 5Zm6 8.25A7.5 7.5 0 0 0 4.5 20.25a.75.75 0 0 1-1.5 0A9 9 0 0 1 21 20.25a.75.75 0 0 1-1.5 0Z" />
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                            <div class="relative">
+                                <input type="password" name="password" required
+                                       class="peer block w-full rounded-2xl border border-gray-300 bg-white px-3 py-2.5 pr-10 text-gray-900 shadow-sm outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition"
+                                       placeholder="••••••••" />
+                                <span class="pointer-events-none absolute inset-y-0 right-3 grid place-items-center text-gray-400 peer-focus:text-gray-900">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M17 8h-1V6a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2Zm-6 7.73V17a1 1 0 0 0 2 0v-1.27a2 2 0 1 0-2 0ZM9 8V6a3 3 0 0 1 6 0v2Z" />
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+
+                        <button type="submit"
+                                class="inline-flex w-full items-center justify-center rounded-2xl px-4 py-2.5 text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition shadow-md">
+                            Masuk
+                        </button>
+
+                        <p class="text-center text-xs text-gray-400">Dengan masuk, Anda menyetujui ketentuan penggunaan.</p>
+                    </form>
+                </div>
+            </div>
+
+            <p class="mt-6 text-center text-sm text-gray-500">
+                &copy; @DateTime.Now.Year — Aplikasi Sekolah
+            </p>
+        </div>
+    </div>
+
+</body>
+</html>

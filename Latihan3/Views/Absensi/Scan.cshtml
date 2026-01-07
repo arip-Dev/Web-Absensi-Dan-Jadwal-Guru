@@ -1,0 +1,91 @@
+﻿@{
+    ViewData["Title"] = "Scan Absensi";
+    ViewData["HideSidebar"] = true; // Fullscreen mode agar fokus
+}
+
+<div class="flex min-h-screen flex-col items-center justify-center bg-gray-100 p-4">
+
+    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <div class="mb-4 text-center">
+            <h1 class="text-2xl font-bold text-gray-800">Scan Kehadiran</h1>
+            <p class="text-sm text-gray-500">Arahkan QR Code ke kamera</p>
+        </div>
+
+        <div id="reader" class="overflow-hidden rounded-xl border-2 border-dashed border-gray-300 bg-gray-50"></div>
+
+        <div id="statusMessage" class="mt-4 hidden rounded-lg p-4 text-center text-sm font-medium"></div>
+
+        <div class="mt-6 flex justify-between border-t pt-4">
+            <a asp-action="Index" class="text-sm text-gray-600 hover:text-gray-900">
+                &larr; Kembali ke Daftar
+            </a>
+            <a asp-action="Create" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                Input Manual (Sakit/Izin)
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+    <script>
+        const statusEl = document.getElementById('statusMessage');
+        let isProcessing = false;
+
+        function onScanSuccess(decodedText, decodedResult) {
+            if (isProcessing) return; // Cegah double submit cepat
+            isProcessing = true;
+
+            // Efek suara (opsional)
+            // let audio = new Audio('/beep.mp3'); audio.play();
+
+            // Kirim NIP ke server
+            const formData = new FormData();
+            formData.append('nip', decodedText);
+
+            fetch('@Url.Action("SubmitScan", "Absensi")', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                statusEl.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
+
+                if (data.success) {
+                    statusEl.classList.add('bg-green-100', 'text-green-700');
+                    statusEl.innerText = "Sukses: " + data.message;
+
+                    // Delay scan berikutnya 3 detik
+                    setTimeout(() => {
+                        statusEl.classList.add('hidden');
+                        isProcessing = false;
+                    }, 3000);
+                } else {
+                    statusEl.classList.add('bg-red-100', 'text-red-700');
+                    statusEl.innerText = "Gagal: " + data.message;
+
+                    // Delay scan berikutnya 2 detik
+                    setTimeout(() => {
+                        isProcessing = false;
+                    }, 2000);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                isProcessing = false;
+            });
+        }
+
+        function onScanFailure(error) {
+            // handle scan failure, usually better to ignore and keep scanning.
+            // console.warn(`Code scan error = ${error}`);
+        }
+
+        let html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader",
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            /* verbose= */ false);
+        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+    </script>
+}

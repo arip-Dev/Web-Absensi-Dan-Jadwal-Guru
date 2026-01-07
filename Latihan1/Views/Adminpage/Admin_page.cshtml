@@ -1,0 +1,231 @@
+﻿@* Views/Adminpage/Admin_page.cshtml *@
+@using System.Globalization
+@model Latihan1.Models.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    string TodayISO = DateTime.Today.ToString("yyyy-MM-dd");
+
+    var kelasList = ViewBag.KelasList as List<string> ?? new();
+    var mapelList = ViewBag.MapelList as List<Latihan1.Models.MapelModel> ?? new();
+    int? hariSel = ViewBag.HariSelected as int?;
+    string? kelasSel = ViewBag.KelasSelected as string;
+    int? mapelSel = ViewBag.MapelSelected as int?;
+    int kelasCount = ViewBag.KelasCount ?? 0;
+    int mapelCount = ViewBag.MapelCount ?? 0;
+}
+
+<div class="min-h-screen bg-gray-50 text-gray-900">
+    <div class="">
+        <header class="sticky top-0 z-30 border-b border-gray-200 bg-white/80 backdrop-blur">
+            <div class="mx-auto max-w-7xl px-4">
+                <div class="flex h-14 items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <button class="lg:hidden rounded-lg p-2 hover:bg-gray-100" onclick="toggleSidebar()" aria-label="Buka sidebar">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18M3 12h18M3 18h18" /></svg>
+                        </button>
+                        <div>
+                            <p class="text-xs text-gray-500">Admin</p>
+                            <h1 class="text-base font-semibold">Dashboard Penjadwalan</h1>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-2 rounded-xl border border-gray-200 p-1">
+                            <div class="h-7 w-7 rounded-lg bg-indigo-600"></div>
+                            <span class="hidden text-sm font-medium md:block">Administrator</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="mx-auto max-w-7xl px-4 py-6">
+            <!-- Quick stats: ganti 2 kartu tengah -->
+            <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="rounded-2xl border border-gray-200 bg-white p-4">
+                    <p class="text-sm text-gray-500">Sesi (Total)</p>
+                    <p class="mt-2 text-2xl font-semibold">@Model.Stats.TotalSesiMingguIni</p>
+                    <p class="mt-1 text-xs text-gray-500">Semua jadwal tersimpan</p>
+                </div>
+
+                <div class="rounded-2xl border border-gray-200 bg-white p-4">
+                    <p class="text-sm text-gray-500">Guru Aktif</p>
+                    <p class="mt-2 text-2xl font-semibold">@Model.Stats.GuruAktif</p>
+                    <p class="mt-1 text-xs text-gray-500">Terdata sebagai aktif</p>
+                </div>
+
+                <div class="rounded-2xl border border-gray-200 bg-white p-4">
+                    <div class="flex items-baseline justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">Jumlah Kelas</p>
+                            <p class="mt-2 text-2xl font-semibold">@kelasCount</p>
+                        </div>
+                        <a asp-controller="Kelas" asp-action="Index" class="text-sm text-indigo-600 hover:underline">Lihat semua</a>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Kelas aktif/terdaftar</p>
+                </div>
+
+                <div class="rounded-2xl border border-gray-200 bg-white p-4">
+                    <div class="flex items-baseline justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">Jumlah Mapel</p>
+                            <p class="mt-2 text-2xl font-semibold">@mapelCount</p>
+                        </div>
+                        <a asp-controller="Mapel" asp-action="Index" class="text-sm text-indigo-600 hover:underline">Lihat semua</a>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Mata pelajaran tersedia</p>
+                </div>
+            </section>
+
+            <!-- Main grid -->
+            <section class="mt-6 grid gap-6 lg:grid-cols-3">
+                <!-- Jadwal (table) -->
+                <div class="lg:col-span-2 rounded-2xl border border-gray-200 bg-white">
+                    <div class="flex flex-col gap-3 border-b border-gray-200 p-4 md:flex-row md:items-center md:justify-between">
+                        <h2 class="text-base font-semibold">Jadwal Mendatang</h2>
+
+                        <!-- FILTER di dalam kartu -->
+                        <form method="get" asp-controller="Admin" asp-action="Admin_page"
+                              class="flex flex-wrap items-center gap-2">
+                            <!-- Kelas -->
+                            <select name="kelas"
+                                    class="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm focus:ring-2 focus:ring-indigo-500">
+                                <option value="">Semua Kelas</option>
+                                @foreach (var k in (ViewBag.KelasList as List<string> ?? new()))
+                                {
+                                    <option value="@k" selected="@(string.Equals(k, (string?)ViewBag.KelasSelected, StringComparison.OrdinalIgnoreCase) ? "selected" : null)">@k</option>
+                                }
+                            </select>
+
+                            <!-- Mapel -->
+                            <select name="mapelId"
+                                    class="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm focus:ring-2 focus:ring-indigo-500">
+                                <option value="">Semua Mapel</option>
+                                @foreach (var m in (ViewBag.MapelList as List<Latihan1.Models.MapelModel> ?? new()))
+                                {
+                                    <option value="@m.Id" selected="@( (int?)ViewBag.MapelSelected == m.Id ? "selected" : null )">@m.Nama</option>
+                                }
+                            </select>
+
+                            <!-- Hari -->
+                            <select name="hari"
+                                    class="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm focus:ring-2 focus:ring-indigo-500">
+                                <option value="">Semua Hari</option>
+                                <option value="1" selected="@( (int?)ViewBag.HariSelected == 1 ? "selected" : null )">Senin</option>
+                                <option value="2" selected="@( (int?)ViewBag.HariSelected == 2 ? "selected" : null )">Selasa</option>
+                                <option value="3" selected="@( (int?)ViewBag.HariSelected == 3 ? "selected" : null )">Rabu</option>
+                                <option value="4" selected="@( (int?)ViewBag.HariSelected == 4 ? "selected" : null )">Kamis</option>
+                                <option value="5" selected="@( (int?)ViewBag.HariSelected == 5 ? "selected" : null )">Jumat</option>
+                                <option value="6" selected="@( (int?)ViewBag.HariSelected == 6 ? "selected" : null )">Sabtu</option>
+                                <option value="7" selected="@( (int?)ViewBag.HariSelected == 7 ? "selected" : null )">Minggu</option>
+                            </select>
+
+                            <button class="h-10 rounded-xl bg-gray-900 px-4 text-sm text-white hover:bg-gray-800">Terapkan</button>
+                            <a asp-controller="Admin" asp-action="Admin_page"
+                               class="p-2.5 rounded-xl border px-3 text-sm hover:bg-gray-50">Reset</a>
+                        </form>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-left text-sm">
+                            <thead class="sticky top-0 bg-white">
+                                <tr class="border-b border-gray-200 text-gray-600">
+                                    <th class="px-4 py-3">Tanggal</th>
+                                    <th class="px-4 py-3">Waktu</th>
+                                    <th class="px-4 py-3">Guru</th>
+                                    <th class="px-4 py-3">Mapel</th>
+                                    <th class="px-4 py-3">Kelas</th>
+                                    <th class="px-4 py-3">Ruangan</th>
+                                    <th class="px-4 py-3">Status</th>
+                                    <th class="px-4 py-3"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.UpcomingSessions?.Any() == true)
+                                {
+                                    foreach (var s in Model.UpcomingSessions.OrderBy(x => x.Tanggal).ThenBy(x => x.Mulai))
+                                    {
+                                        var isConflict = string.Equals(s.Status, "Konflik", StringComparison.OrdinalIgnoreCase);
+                                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                            <td class="px-4 py-3">@s.Tanggal.ToString("ddd, dd MMM", new CultureInfo("id-ID"))</td>
+                                            <td class="px-4 py-3">@s.Mulai - @s.Selesai</td>
+                                            <td class="px-4 py-3">@s.Guru</td>
+                                            <td class="px-4 py-3">@s.Mapel</td>
+                                            <td class="px-4 py-3">@s.Kelas</td>
+                                            <td class="px-4 py-3">@s.Ruang</td>
+                                            <td class="px-4 py-3">
+                                                <span class="inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs @(isConflict ? "bg-red-50 text-red-700 ring-1 ring-red-200" : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200")">
+                                                    <span class="h-1.5 w-1.5 rounded-full @(isConflict ? "bg-red-600" : "bg-emerald-600")"></span>
+                                                    @s.Status
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                <div class="flex items-center gap-2">
+                                                    <a class="rounded-lg px-2 py-1 text-xs hover:bg-gray-100"
+                                                       asp-controller="BuatJadwal" asp-action="BuatJadwal" asp-route-id="@s.Id">Edit</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr><td class="px-4 py-5 text-slate-500" colspan="8">Belum ada jadwal.</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Sidebar kanan -->
+                <div class="space-y-6">
+                    <div class="rounded-2xl border border-gray-200 bg-white">
+                        <div class="flex items-center justify-between border-b border-gray-200 p-4">
+                            <h3 class="text-base font-semibold">Guru & Beban Mengajar</h3>
+                            <a asp-controller="Dataguru" asp-action="Teacher_data" class="text-sm text-indigo-600 hover:underline">Lihat semua</a>
+                        </div>
+                        <ul class="divide-y divide-gray-100">
+                            @if (Model.Teachers?.Any() == true)
+                            {
+                                foreach (var t in Model.Teachers)
+                                {
+                                    var pct = (int)Math.Round((double)(t.Load * 100 / Math.Max(1, t.MaxLoad)));
+                                    <li class="p-4">
+                                        <div class="flex items-start justify-between">
+                                            <div>
+                                                <p class="font-medium">@t.Nama</p>
+                                                <p class="text-xs text-gray-500">@t.Mapel</p>
+                                            </div>
+                                            <span class="text-sm">@t.Load/@t.MaxLoad jp</span>
+                                        </div>
+                                        <div class="mt-2 h-2 w-full rounded-full bg-gray-100">
+                                            <div class="h-2 rounded-full bg-indigo-600" style="width:@pct%"></div>
+                                        </div>
+                                    </li>
+                                }
+                            }
+                            else
+                            {
+                                <li class="p-4 text-slate-500">Belum ada data guru aktif.</li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<script>
+    function toggleSidebar() {
+        const el = document.getElementById('sidebar');
+        const hidden = el?.style.transform?.includes('-translateX') || el?.classList.contains('-translate-x-full');
+        if (window.innerWidth < 1024) {
+            if (hidden) el?.classList.remove('-translate-x-full');
+            else el?.classList.add('-translate-x-full');
+        }
+    }
+    if (window.innerWidth < 1024) document.getElementById('sidebar')?.classList.add('-translate-x-full');
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 1024) document.getElementById('sidebar')?.classList.remove('-translate-x-full');
+    });
+</script>

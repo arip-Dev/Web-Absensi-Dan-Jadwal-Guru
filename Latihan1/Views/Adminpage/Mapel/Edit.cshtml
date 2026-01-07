@@ -1,0 +1,30 @@
+﻿@model Latihan1.Models.MapelModel
+@{
+    ViewData["Title"] = "Edit Mapel";
+}
+<div class="mx-auto max-w-xl px-4 py-6">
+    <h1 class="mb-4 text-2xl font-semibold">Edit Mapel</h1>
+
+    <div asp-validation-summary="ModelOnly" class="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"></div>
+
+    <form method="post" asp-controller="Mapel" asp-action="Edit" class="space-y-4">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <div>
+            <label asp-for="Kode" class="block text-sm text-slate-600">Kode</label>
+            <input asp-for="Kode" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" />
+            <span asp-validation-for="Kode" class="text-sm text-red-700"></span>
+        </div>
+        <div>
+            <label asp-for="Nama" class="block text-sm text-slate-600">Nama</label>
+            <input asp-for="Nama" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" />
+            <span asp-validation-for="Nama" class="text-sm text-red-700"></span>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <a asp-controller="Mapel" asp-action="Index"
+               class="rounded-lg border border-slate-300 px-4 py-2">Batal</a>
+            <button class="rounded-lg bg-blue-600 px-4 py-2 text-white">Simpan</button>
+        </div>
+    </form>
+</div>

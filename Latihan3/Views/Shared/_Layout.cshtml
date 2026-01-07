@@ -1,0 +1,71 @@
+﻿@{
+    // Mengambil status dari ViewData (Default: false jika tidak diatur)
+    bool hideNavbar = ViewData["HideNavbar"] as bool? ?? false;
+    bool hideFooter = ViewData["HideFooter"] as bool? ?? false;
+
+    // Logika deteksi Controller & Action untuk menu aktif
+    string? curController = ViewContext.RouteData.Values["controller"]?.ToString();
+    string? curAction = ViewContext.RouteData.Values["action"]?.ToString();
+
+    // Helper untuk class menu aktif
+    Func<bool, string> itemClass = (bool isActive) =>
+        isActive
+            ? "nav-link text-primary fw-bold border-bottom border-primary" // Contoh style aktif
+            : "nav-link text-dark";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Latihan3</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    @* --- NAVBAR CONDITIONAL --- *@
+    @if (!hideNavbar)
+    {
+        <header>
+            <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+                <div class="container-fluid">
+                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Latihan3</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                        <ul class="navbar-nav flex-grow-1">
+                            <li class="nav-item">
+                                <a class="@itemClass(curAction == "Index")" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="@itemClass(curAction == "Privacy")" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </header>
+    }
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    @* --- FOOTER CONDITIONAL --- *@
+    @if (!hideFooter)
+    {
+        <footer class="border-top footer text-muted bg-light py-3">
+            <div class="container text-center">
+                &copy; @DateTime.Now.Year - Latihan3 - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            </div>
+        </footer>
+    }
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

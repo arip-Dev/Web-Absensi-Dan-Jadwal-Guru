@@ -1,0 +1,112 @@
+﻿@model Latihan1.Models.KelasListVm
+@using Latihan1.Models
+@{
+    ViewData["Title"] = "Kelas";
+    Layout = "_Layout";
+
+    var groups = ViewData["Groups"] as IEnumerable<KelasGroupVm>;
+    bool isDetail = !string.IsNullOrWhiteSpace(Model?.Tingkat);
+}
+
+<section class="mx-auto max-w-7xl px-4 py-8">
+    <div class="mb-6 flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight">Kelas @(!isDetail ? "" : Model!.Tingkat)</h1>
+            <p class="text-slate-500">
+                @(!isDetail ? "Pilih tingkat untuk melihat daftar kelas"
+                                : $"Daftar kelas tingkat {Model!.Tingkat}")
+            </p>
+        </div>
+
+        @if (isDetail)
+        {
+            <a asp-controller="Kelas" asp-action="Create" asp-route-tingkat="@Model!.Tingkat"
+               class="rounded-xl bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">Tambah Kelas</a>
+        }
+    </div>
+    @if (TempData["ok"] != null)
+    {
+        <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800 shadow-sm">
+            <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+                </svg>
+                <span class="font-semibold">Sukses!</span> @TempData["ok"]
+            </div>
+        </div>
+    }
+
+    @if (TempData["err"] != null)
+    {
+        <div class="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-800 shadow-sm">
+            <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                </svg>
+                <span class="font-semibold">Error!</span> @TempData["err"]
+            </div>
+        </div>
+    }
+    @if (!isDetail)
+    {
+        <!-- ========== GRID TINGKAT (X / XI / XII) ========== -->
+        <div class="grid gap-6 md:grid-cols-3">
+            @{
+                var order = new[] { "X", "XI", "XII" };
+                var dict = (groups ?? Enumerable.Empty<KelasGroupVm>())
+                .ToDictionary(g => g.Tingkat, g => g.Count);
+            }
+            @foreach (var t in order)
+            {
+                var cnt = dict.TryGetValue(t, out var c) ? c : 0;
+                <a asp-controller="Kelas" asp-action="Index" asp-route-tingkat="@t"
+                   class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md">
+                    <div class="text-2xl font-semibold">@t</div>
+                    <p class="text-slate-500 mt-1">@cnt kelas</p>
+                </a>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- ========== DAFTAR KELAS PER TINGKAT ========== -->
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            @foreach (var k in Model!.Items)
+            {
+                <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-lg font-semibold">@k.Nama</div>
+                            <div class="text-sm text-slate-500">
+                                @k.Tingkat • @(k.IsActive ? "Aktif" : "Nonaktif")
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <a asp-controller="Kelas" asp-action="Jadwal" asp-route-id="@k.Id"
+                               class="rounded-lg bg-blue-600 px-3 py-1 text-white hover:bg-blue-700">
+                                Lihat jadwal
+                            </a>
+                            <a asp-controller="Kelas" asp-action="Edit" asp-route-id="@k.Id"
+                               class="rounded-lg border px-3 py-1 hover:bg-slate-50">Edit</a>
+                            <form asp-controller="Kelas" asp-action="Delete" method="post"
+                                  onsubmit="return confirm('Hapus kelas @k.Nama?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@k.Id" />
+                                <input type="hidden" name="tingkat" value="@k.Tingkat" />
+                                <button class="rounded-lg border px-3 py-1 text-red-600 hover:bg-red-50">Hapus</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+
+        <div class="mt-6">
+            <a asp-controller="Kelas" asp-action="Index"
+               class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-slate-700 hover:bg-slate-50">
+                ← Kembali ke pilih tingkat
+            </a>
+        </div>
+    }
+</section>

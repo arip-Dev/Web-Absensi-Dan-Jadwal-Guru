@@ -1,0 +1,37 @@
+﻿@model Latihan1.Models.KelasModel
+@{
+    ViewData["Title"] = "Edit Kelas";
+    Layout = "_Layout";
+}
+<section class="mx-auto max-w-xl px-4 py-8">
+    <h1 class="text-2xl font-semibold mb-4">Edit Kelas</h1>
+
+    <form method="post" asp-controller="Kelas" asp-action="Edit" class="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+
+        <div>
+            <label class="block text-sm font-medium">Tingkat</label>
+            <select asp-for="Tingkat" class="mt-1 w-full rounded-lg border-gray-300">
+                <option value="X">X</option>
+                <option value="XI">XI</option>
+                <option value="XII">XII</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium">Nama Kelas</label>
+            <input asp-for="Nama" class="mt-1 w-full rounded-lg border-gray-300" />
+        </div>
+
+        <div class="flex items-center gap-2">
+            <input asp-for="IsActive" type="checkbox" class="h-5 w-5 rounded border-gray-300" />
+            <label asp-for="IsActive">Aktif</label>
+        </div>
+
+        <div class="flex justify-end gap-2">
+            <a asp-controller="Kelas" asp-action="Index" asp-route-tingkat="@Model.Tingkat" class="rounded-lg border px-4 py-2 hover:bg-slate-50">Batal</a>
+            <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">Simpan</button>
+        </div>
+    </form>
+</section>

@@ -1,0 +1,64 @@
+﻿@{
+    ViewData["Title"] = "Laporan Jadwal";
+}
+
+<section class="mx-auto max-w-7xl px-4 py-8">
+    <!-- Header -->
+    <div class="mb-6">
+        <p class="text-sm text-slate-500">Dashboard Admin</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight text-slate-900">Laporan Jadwal</h1>
+        <p class="mt-1 text-slate-500">Ekspor dan lihat laporan jadwal mengajar</p>
+    </div>
+
+    <!-- Kartu Ekspor -->
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="text-2xl font-semibold">Ekspor Laporan</h2>
+        <p class="mt-1 text-slate-500">Unduh laporan jadwal dalam berbagai format</p>
+
+        <div class="mt-6 flex flex-col gap-3">
+            <!-- Utama: PDF -->
+            <a href="/reports/export/pdf"
+               class="inline-flex items-center justify-between gap-3 rounded-2xl bg-blue-600 px-5 py-4 text-white shadow hover:bg-blue-700">
+                <span class="inline-flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M5 20h14v-2H5v2zM12 2l4 4h-3v6h-2V6H8l4-4z" />
+                    </svg>
+                    <span class="font-medium">Unduh sebagai PDF</span>
+                </span>
+            </a>
+
+            <!-- Sekunder: Excel -->
+            <a href="/reports/export/csv"
+               class="inline-flex items-center justify-between gap-3 rounded-2xl bg-slate-100 px-5 py-4 text-slate-700 hover:bg-slate-200">
+                <span class="inline-flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M5 20h14V4H5v16zm3.7-4l1.9-2.9L8.7 10h1.9l1 1.7 1-1.7h1.9l-1.9 3.1 1.9 2.9h-1.9l-1-1.7-1 1.7H8.7zM7 6h10v2H7V6z" />
+                    </svg>
+                    <span class="font-medium">Unduh sebagai Excel</span>
+                </span>
+            </a>
+
+            <!-- Tersier: Lihat lengkap -->
+            <a href="/reports/view"
+               class="inline-flex items-center justify-between gap-3 rounded-2xl bg-slate-100 px-5 py-4 text-slate-700 hover:bg-slate-200">
+                <span class="inline-flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z" />
+                    </svg>
+                    <span class="font-medium">Lihat Laporan Lengkap</span>
+                </span>
+            </a>
+        </div>
+    </div>
+</section>
+
+@section Scripts{
+<script>
+    // Demo handler (dummy) agar terasa ada aksi saat klik
+    const params = new URLSearchParams(window.location.search);
+    const dl = params.get('download');
+    if (dl === 'pdf')  console.log('Trigger export PDF (dummy)');
+    if (dl === 'xlsx') console.log('Trigger export Excel (dummy)');
+}
+</script>
+}

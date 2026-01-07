@@ -1,0 +1,121 @@
+﻿@model Latihan3.Models.AbsensiGuru
+@{
+    ViewData["Title"] = "Input Absensi Manual";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .select2-container .select2-selection--single {
+        height: 42px !important;
+        border-color: #d1d5db !important;
+        border-radius: 0.375rem !important;
+        padding-top: 6px;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 40px !important;
+    }
+</style>
+
+<div class="mx-auto max-w-lg p-6 bg-white rounded shadow">
+    <h2 class="text-xl font-bold mb-4">Input Absensi Manual</h2>
+    <p class="text-sm text-gray-500 mb-6">Gunakan form ini jika guru Sakit, Izin, atau lupa membawa QR Code.</p>
+
+    <form asp-action="Create" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-red-500 mb-4"></div>
+
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">Nama Guru</label>
+            
+            <select id="SelectGuru" asp-for="Id" class="mt-1 block w-full rounded border-gray-300 p-2 shadow-sm border">
+                @if (ViewBag.GuruList != null)
+                {
+                    // Bagian ini hanya akan terisi jika terjadi Error Validasi (setelah tombol simpan ditekan)
+                    foreach (var item in (IEnumerable<SelectListItem>)ViewBag.GuruList)
+                    {
+                        <option value="@item.Value" selected="@item.Selected">@item.Text</option>
+                    }
+                }
+                // Jika ViewBag null, tidak ada option yang dirender
+            </select>
+            <span asp-validation-for="Id" class="text-xs text-red-500"></span>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">Tanggal</label>
+            <input asp-for="Tanggal" type="datetime-local" class="mt-1 block w-full rounded border-gray-300 p-2 shadow-sm border" value="@Model.Tanggal.ToString("yyyy-MM-ddTHH:mm")" />
+            <span asp-validation-for="Tanggal" class="text-xs text-red-500"></span>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">Status Kehadiran</label>
+            <select asp-for="Status" class="mt-1 block w-full rounded border-gray-300 p-2 shadow-sm border">
+                <option value="Hadir">Hadir (Lupa Scan)</option>
+                <option value="Sakit">Sakit</option>
+                <option value="Izin">Izin</option>
+                <option value="Alpa">Tanpa Keterangan (Alpa)</option>
+            </select>
+            <span asp-validation-for="Status" class="text-xs text-red-500"></span>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700">Keterangan (Opsional)</label>
+            <textarea asp-for="Keterangan" class="mt-1 block w-full rounded border-gray-300 p-2 shadow-sm border" placeholder="Contoh: Surat dokter terlampir..."></textarea>
+            <span asp-validation-for="Keterangan" class="text-xs text-red-500"></span>
+        </div>
+
+        <div class="flex justify-end gap-2">
+            <a asp-action="Index" class="px-4 py-2 bg-gray-200 rounded text-gray-700 hover:bg-gray-300">Batal</a>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Simpan</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // --- INI BAGIAN YANG ANDA LEWATKAN SEBELUMNYA ---
+            $('#SelectGuru').select2({
+                placeholder: "-- Cari Nama Guru --",
+                allowClear: true,
+                width: '100%',
+                minimumInputLength: 2, // Search baru jalan kalau ketik 2 huruf
+                ajax: {
+                    // Gunakan Url.Action agar link otomatis benar meskipun folder berubah
+                    url: '@Url.Action("SearchGuru", "Absensi")', 
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            term: params.term // Mengirim teks pencarian ke controller
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.results
+                        };
+                    },
+                    cache: true
+                }
+            });
+        });
+
+        // --- Script Asli Anda (Waktu) tetap dipertahankan ---
+        window.onload = function() {
+            const inputWaktu = document.querySelector('input[type="datetime-local"]');
+            if (inputWaktu && !inputWaktu.dataset.isEdited) {
+                const sekarang = new Date();
+                const offset = sekarang.getTimezoneOffset() * 60000;
+                const localISOTime = (new Date(sekarang - offset)).toISOString().slice(0, 16);
+                inputWaktu.value = localISOTime;
+            }
+        };
+
+        document.querySelector('input[type="datetime-local"]').addEventListener('change', function() {
+            this.dataset.isEdited = "true";
+        });
+    </script>
+}

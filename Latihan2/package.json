@@ -1,0 +1,17 @@
+{
+  "name": "latihan2",
+  "private": true,
+  "scripts": {
+    "tw": "tailwindcss -i ./Styles/Tailwind.css -o ./wwwroot/css/site.css --watch",
+    "web": "dotnet watch run --no-hot-reload --launch-profile http",
+    "dev": "concurrently -n TW,WEB -c cyan,green \"npm:tw\" \"npm:web\""
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.16",
+    "tailwindcss": "^4.1.16"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+, "-vs-binding":{"ProjectOpened":["dev"]}
+}

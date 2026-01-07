@@ -1,0 +1,325 @@
+﻿@model Latihan1.Models.GuruModel
+@using Microsoft.AspNetCore.Mvc.Rendering
+@using System.Linq;
+
+@{
+    ViewData["Title"] = "Edit Guru";
+    var mapelList = ViewBag.MapelList as SelectList ?? new SelectList(Enumerable.Empty<SelectListItem>());
+    var lockedIds = ViewBag.LockedMapelIds as int[] ?? Array.Empty<int>();   // mapel yang sudah dipakai di Jadwal
+}
+
+<div class="mx-auto max-w-4xl px-4 py-6">
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <!-- Header -->
+        <div class="flex items-center justify-between gap-3 border-b border-slate-200 px-6 py-4">
+            <h2 class="text-lg font-semibold tracking-tight">Edit Data Guru</h2>
+            <a asp-action="Teacher_data" asp-controller="Dataguru"
+               class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                Kembali
+            </a>
+        </div>
+
+        <p class="text-xs text-slate-400">
+            Locked IDs: @string.Join(", ", lockedIds)
+        </p>
+
+
+        <!-- Body -->
+        <form asp-action="Edit" asp-controller="Dataguru" method="post" class="px-6 py-5 space-y-6">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+
+    <div>
+        <label asp-for="Nama" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+            Nama Lengkap
+        </label>
+        <input asp-for="Nama"
+               class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm
+                      focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200" />
+        <span asp-validation-for="Nama" class="mt-1 block text-sm text-red-600"></span>
+    </div>
+
+    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <div>
+            <label asp-for="NIP" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+                NIP
+            </label>
+            <input asp-for="NIP"
+                   class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm
+                          focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200" />
+            <span asp-validation-for="NIP" class="mt-1 block text-sm text-red-600"></span>
+        </div>
+
+        <div>
+            <label asp-for="Email" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+                Email
+            </label>
+            <input asp-for="Email" type="email"
+                   class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm
+                          focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200" />
+            <span asp-validation-for="Email" class="mt-1 block text-sm text-red-600"></span>
+        </div>
+    </div>
+
+    <div class="relative">
+        <label asp-for="MapelIds" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+            Mata Pelajaran
+        </label>
+
+        <div id="mapelBox"
+             class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm cursor-pointer flex flex-wrap gap-2 min-h-[46px] items-center">
+            <span id="placeholder" class="text-slate-400">Pilih mata pelajaran...</span>
+        </div>
+
+        <div id="dropdownMapel"
+             class="hidden absolute z-20 mt-1 w-full bg-white border border-slate-300 rounded-xl shadow-lg max-h-64 overflow-y-auto">
+            <div class="p-2 sticky top-0 bg-white border-b border-slate-200">
+                <input id="searchMapel" type="text" placeholder="Cari mata pelajaran..."
+                       class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" />
+            </div>
+            <ul id="mapelList" class="py-2 px-1 text-sm"></ul>
+        </div>
+
+        <p class="mt-1.5 text-[11px] text-slate-400 leading-relaxed">
+           Mata pelajaran yang sudah memiliki jadwal aktif akan dikunci otomatis.
+        </p>
+        <span asp-validation-for="MapelIds" class="mt-1 block text-sm text-red-600"></span>
+    </div>
+
+    <hr class="border-slate-100" />
+
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 items-end">
+        <div>
+            <label asp-for="JamMengajar" class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+                Total Jam (Jadwal)
+            </label>
+            <div class="relative">
+                <input asp-for="JamMengajar" type="number" disabled
+                       class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-bold text-blue-600 cursor-not-allowed" />
+                <input type="hidden" asp-for="JamMengajar" />
+            </div>
+        </div>
+
+        <div>
+            <label asp-for="IsActive" class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+                Status Akun
+            </label>
+            <select asp-for="IsActive"
+                    class="block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                <option value="true">Aktif</option>
+                <option value="false">Non-Aktif</option>
+            </select>
+        </div>
+
+        <div>
+            <label asp-for="MaxWeeklyLoad" class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+                Limit Mingguan
+            </label>
+            <div class="relative flex items-center">
+                <input asp-for="MaxWeeklyLoad" type="number" min="0"
+                       class="block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
+                <span class="absolute right-3 text-[10px] text-slate-400">Jam</span>
+            </div>
+        </div>
+
+        <div>
+            <label asp-for="MaxDailyLoad" class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+                Limit Harian
+            </label>
+            <div class="relative flex items-center">
+                <input asp-for="MaxDailyLoad" type="number" min="0"
+                       class="block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
+                <span class="absolute right-3 text-[10px] text-slate-400">Jam</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex items-center justify-end gap-3 border-t border-slate-100 py-5">
+        <a asp-action="Teacher_data" asp-controller="Dataguru"
+           class="inline-flex items-center rounded-xl border border-slate-500 px-5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+            Batal
+        </a>
+        <button type="submit"
+                class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm shadow-blue-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+            Simpan Perubahan
+        </button>
+    </div>
+</form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const box = document.getElementById("mapelBox");
+            const dropdown = document.getElementById("dropdownMapel");
+            const search = document.getElementById("searchMapel");
+            const list = document.getElementById("mapelList");
+            const placeholder = document.getElementById("placeholder");
+            const MAX = 3;   // maksimal 3 mapel per guru
+
+            if (!box || !dropdown || !search || !list || !placeholder) return;
+
+            // ====== DATA MAPEL DARI SERVER ======
+            const mapels = [
+            @foreach (var item in mapelList)
+            {
+                    <text>{
+                        id: "@item.Value",   // string id
+                        text: "@item.Text"
+                    },</text>
+            }
+            ];
+
+            // ====== ID MAPEL TERPILIH (Model.MapelIds) ======
+            const selectedFromModel = [
+            @{
+                    var arrSelected = Model.MapelIds ?? Array.Empty<int>();
+                    for (int i = 0; i < arrSelected.Length; i++)
+                    {
+                            var comma = i < arrSelected.Length - 1 ? "," : "";
+                            @: "@arrSelected[i]"@comma
+                    }
+            }
+            ];
+
+            // ====== ID MAPEL TERKUNCI (dipakai di Jadwal) ======
+            const lockedFromServer = [
+            @{
+                    var lockedArr = lockedIds;
+                    for (int i = 0; i < lockedArr.Length; i++)
+                    {
+                            var comma = i < lockedArr.Length - 1 ? "," : "";
+                            @: "@lockedArr[i]"@comma
+                    }
+            }
+            ];
+
+            // Normalisasi semua id ke string agar .includes() tidak gagal karena tipe
+            const toStrArr = (arr) =>
+                arr
+                    .filter(x => x !== null && x !== undefined && x !== "")
+                    .map(x => x.toString());
+
+            let selected = toStrArr(selectedFromModel);   // ["3","5",...]
+            const locked = toStrArr(lockedFromServer);    // ["3","7",...]
+            let currentFilter = "";
+
+            // ====== RENDER DROPDOWN ======
+            function renderDropdown(filter = "") {
+                currentFilter = filter.toLowerCase();
+                const filtered = mapels.filter(m =>
+                    m.text.toLowerCase().includes(currentFilter)
+                );
+
+                list.innerHTML = filtered.map(m => {
+                    const idStr    = m.id.toString();
+                    const isChecked = selected.includes(idStr);
+                    const isLocked  = locked.includes(idStr);
+                    return `
+                        <li class="mapel-item flex items-center gap-2 px-3 py-2 hover:bg-slate-50 cursor-pointer">
+                            <input type="checkbox"
+                                   class="mapel-check"
+                                   value="${idStr}"
+                                   ${isChecked ? "checked" : ""}
+                                   ${isLocked ? "disabled" : ""}/>
+                            <span class="${isLocked ? "text-slate-400" : ""}">
+                                ${m.text}${isLocked ? " (terkunci)" : ""}
+                            </span>
+                        </li>
+                    `;
+                }).join("");
+
+                // klik checkbox
+                list.querySelectorAll(".mapel-check").forEach(el => {
+                    el.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        toggleSelect(el.value);
+                    });
+                });
+
+                // klik area / teks
+                list.querySelectorAll(".mapel-item").forEach(li => {
+                    li.addEventListener("click", () => {
+                        const cb = li.querySelector(".mapel-check");
+                        if (!cb || cb.disabled) return;
+                        toggleSelect(cb.value);
+                    });
+                });
+            }
+
+            // ====== TOGGLE PILIHAN ======
+            function toggleSelect(value) {
+                const v = value.toString();
+
+                // kalau mapel terkunci & sudah terpilih → tidak boleh dihapus
+                if (locked.includes(v) && selected.includes(v)) {
+                    alert("Mata pelajaran ini sudah dipakai di jadwal dan tidak bisa dihapus.");
+                    return;
+                }
+
+                if (selected.includes(v)) {
+                    selected = selected.filter(x => x !== v);
+                } else {
+                    selected.push(v);
+                }
+
+                renderSelected();
+                renderDropdown(currentFilter);  // sinkronkan ceklis
+            }
+
+            // ====== RENDER BADGE + HIDDEN INPUT ======
+            function renderSelected() {
+                box.innerHTML = "";
+
+                if (selected.length === 0) {
+                    placeholder.classList.remove("hidden");
+                    box.appendChild(placeholder);
+                    placeholder.innerText = "Pilih mata pelajaran...";
+                    return;
+                }
+
+                placeholder.classList.add("hidden");
+
+                selected.forEach(id => {
+                    const item = mapels.find(m => m.id.toString() === id);
+                    if (!item) return;
+
+                    const isLocked = locked.includes(id);
+
+                    const tag = document.createElement("span");
+                    tag.className = "px-2 py-1 text-xs rounded-full " +
+                        (isLocked ? "bg-slate-200 text-slate-700" : "bg-blue-100 text-blue-700");
+                    tag.innerText = isLocked ? `${item.text} (terkunci)` : item.text;
+                    box.appendChild(tag);
+
+                    const hidden = document.createElement("input");
+                    hidden.type = "hidden";
+                    hidden.name = "MapelIds";
+                    hidden.value = id;
+                    box.appendChild(hidden);
+                });
+            }
+
+            // ====== EVENT ======
+            box.addEventListener("click", () => {
+                dropdown.classList.toggle("hidden");
+            });
+
+            document.addEventListener("mousedown", (e) => {
+                if (!box.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.add("hidden");
+                }
+            });
+
+            search.addEventListener("input", () => {
+                renderDropdown(search.value);
+            });
+
+            // INIT
+            renderSelected();
+            renderDropdown();
+        });
+    </script>
+}
