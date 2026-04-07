@@ -1,30 +1,22 @@
-# Tahap 1: Build (Menggunakan SDK .NET 8)
+# Tahap 1: Build aplikasi menggunakan .NET SDK
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy file .sln dan semua .csproj untuk restore dependensi
-# Ini penting agar layer Docker bisa di-cache
-COPY ["Sekolah.sln", "./"]
-COPY ["Latihan1/Latihan1.csproj", "Latihan1/"]
-COPY ["Latihan2/Latihan2.csproj", "Latihan2/"]
+# Salin file .csproj spesifik untuk Latihan3 agar restore lebih efisien
 COPY ["Latihan3/Latihan3.csproj", "Latihan3/"]
+RUN dotnet restore "Latihan3/Latihan3.csproj"
 
-RUN dotnet restore "Latihan1/Latihan1.csproj"
-
-# Copy seluruh source code
+# Salin semua sisa source code
 COPY . .
 
-# Build dan Publish
-WORKDIR "/src/Latihan1"
-RUN dotnet publish "Latihan1.csproj" -c Release -o /app/publish /p:UseAppHost=false
+# Publish proyek Latihan3 (Portal Absensi)
+WORKDIR "/src/Latihan3"
+RUN dotnet publish "Latihan3.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-# Tahap 2: Runtime (Image yang lebih kecil)
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+# Tahap 2: Jalankan aplikasi menggunakan .NET Runtime (Lebih ringan)
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
+EXPOSE 8080
+
 COPY --from=build /app/publish .
-
-# Render menggunakan port 80 secara default untuk HTTP
-ENV ASPNETCORE_URLS=http://+:80
-EXPOSE 80
-
-ENTRYPOINT ["dotnet", "Latihan1.dll"]
+ENTRYPOINT ["dotnet", "Latihan3.dll"]
