@@ -9,21 +9,21 @@
 
     public class SessionVM
     {
-        public int Id { get; set; }
-        public DateTime Tanggal { get; set; }
-        public string Mulai { get; set; } = "";
-        public string Selesai { get; set; } = "";
-        public string Guru { get; set; } = "";
-        public string Mapel { get; set; } = "";
-        public string Kelas { get; set; } = "";
+        public int id { get; set; }
+        public DateTime tanggal { get; set; }
+        public string mulai { get; set; } = "";
+        public string selesai { get; set; } = "";
+        public string guru { get; set; } = "";
+        public string mapel { get; set; } = "";
+        public string kelas { get; set; } = "";
         public string Ruang { get; set; } = "";
-        public string Status { get; set; } = "";
+        public string status { get; set; } = "";
     }
 
     public partial class TeacherVM
     {
-        public string Nama { get; set; } = "";
-        public string Mapel { get; set; } = "";
+        public string nama { get; set; } = "";
+        public string mapel { get; set; } = "";
         public int Load { get; set; }
         public int MaxLoad { get; set; }
     }
@@ -31,8 +31,8 @@
     public class DashboardStatsVM
     {
         public int TotalSesiMingguIni { get; set; }
-        public int SesiBerjalanHariIni { get; set; }
+        public int SesiBerjalanhariIni { get; set; }
         public int KonflikTerbuka { get; set; }
-        public int GuruAktif { get; set; }
+        public int guruAktif { get; set; }
     }
 }

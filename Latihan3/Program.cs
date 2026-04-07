@@ -31,7 +31,7 @@ builder.Services.AddAuthentication("CookieSekolah")
         options.Cookie.Path = "/"; // Agar cookie dari root bisa dibaca sub-folder
         options.LoginPath = "/Auth/Login";
         options.AccessDeniedPath = "/Auth/Denied";
-    }); // Nama ini HARUS SAMA di ketiga project
+    }); // nama ini HARUS SAMA di ketiga project
 
 builder.Services.AddControllersWithViews();
 

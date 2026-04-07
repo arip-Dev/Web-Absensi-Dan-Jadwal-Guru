@@ -1,62 +1,62 @@
-﻿@model Latihan1.Models.KelasModel
+﻿@model Latihan1.Models.kelasModel
 @{
-    ViewData["Title"] = "Tambah Kelas";
+    ViewData["Title"] = "Tambah kelas";
     Layout = "_Layout";
 }
 
 <section class="mx-auto max-w-2xl px-4 py-10">
     <header class="mb-6">
-        <h1 class="text-3xl font-bold tracking-tight text-slate-900">Tambah Kelas</h1>
+        <h1 class="text-3xl font-bold tracking-tight text-slate-900">Tambah kelas</h1>
         <p class="mt-1 text-slate-500">Isi data kelas dengan benar lalu klik <span class="font-medium text-slate-700">Simpan</span>.</p>
     </header>
 
     <form method="post"
-          asp-controller="Kelas" asp-action="Create"
+          asp-controller="kelas" asp-action="Create"
           class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         @Html.AntiForgeryToken()
 
-        <!-- Validation summary -->
-        <div asp-validation-summary="ModelOnly" class="m-4 rounded-xl bg-rose-50 p-3 text-sm text-rose-700"></div>
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div asp-validation-summary="All" class="m-4 rounded-xl bg-rose-50 p-3 text-sm text-rose-700"></div>
+        }
 
         <div class="divide-y divide-slate-200">
             <div class="p-6">
                 <div class="grid gap-5 sm:grid-cols-2">
-                    <!-- Tingkat -->
                     <div class="sm:col-span-1">
-                        <label asp-for="Tingkat" class="mb-1 block text-sm font-medium text-slate-700">Tingkat</label>
-                        <select asp-for="Tingkat"
+                        <label asp-for="tingkat" class="mb-1 block text-sm font-medium text-slate-700">tingkat</label>
+                        <select asp-for="tingkat"
                                 class="block w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none ring-0 transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
                             <option value="X">X</option>
                             <option value="XI">XI</option>
                             <option value="XII">XII</option>
                         </select>
-                        <span asp-validation-for="Tingkat" class="mt-1 block text-xs text-rose-600"></span>
+                        <span asp-validation-for="tingkat" class="mt-1 block text-xs text-rose-600"></span>
                     </div>
 
-                    <!-- Nama -->
                     <div class="sm:col-span-1">
-                        <label asp-for="Nama" class="mb-1 block text-sm font-medium text-slate-700">Nama Kelas</label>
-                        <input asp-for="Nama"
+                        <label asp-for="nama" class="mb-1 block text-sm font-medium text-slate-700">nama kelas</label>
+                        <input asp-for="nama"
                                placeholder="mis. IPA 2"
+                               oninput="this.value = this.value.toUpperCase()"
                                class="block w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none ring-0 transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
-                        <span asp-validation-for="Nama" class="mt-1 block text-xs text-rose-600"></span>
+                        <span asp-validation-for="nama" class="mt-1 block text-xs text-rose-600"></span>
                         <p class="mt-1 text-xs text-slate-500">Contoh: IPA 1, IPS 3, RPL A, dsb.</p>
                     </div>
 
-                    <!-- Aktif -->
                     <div class="sm:col-span-2">
                         <label class="inline-flex cursor-pointer items-center gap-3">
-                            <input asp-for="IsActive" type="checkbox"
+                            <input asp-for="isactive" type="checkbox"
                                    class="h-5 w-5 rounded border-slate-300 text-blue-600 outline-none focus:ring-2 focus:ring-blue-200" />
                             <span class="text-sm text-slate-700">Aktif</span>
                         </label>
-                        <span asp-validation-for="IsActive" class="mt-1 block text-xs text-rose-600"></span>
+                        <span asp-validation-for="isactive" class="mt-1 block text-xs text-rose-600"></span>
                     </div>
                 </div>
             </div>
 
             <div class="flex items-center justify-end gap-2 bg-slate-50 p-4">
-                <a asp-controller="Kelas" asp-action="Index" asp-route-tingkat="@Model.Tingkat"
+                <a asp-controller="kelas" asp-action="Index" asp-route-tingkat="@Model.tingkat"
                    class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-200">
                     Batal
                 </a>

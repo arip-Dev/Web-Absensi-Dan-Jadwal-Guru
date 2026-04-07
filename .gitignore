@@ -366,3 +366,9 @@ CommonKeys/
 **/CommonKeys/
 **/keys/
 **/*DataProtection*
+
+# Amankan file kredensial (Supabase / JWT)
+**/appsettings.json
+**/appsettings.Development.json
+.env
+.env.*

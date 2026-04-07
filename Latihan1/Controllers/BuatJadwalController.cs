@@ -4,12 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace Latihan1.Controllers
 {
     [Authorize(AuthenticationSchemes = "CookieSekolah", Roles = "Admin")]
-    public class BuatJadwalController : Controller
+    public class BuatjadwalController : Controller
     {
         [HttpGet("buat-jadwal")] // URL: /buat-jadwal
-        public IActionResult BuatJadwal()
+        public IActionResult Buatjadwal()
         {
-            return View("~/Views/AdminPage/BuatJadwal.cshtml");
+            return View("~/Views/AdminPage/Buatjadwal.cshtml");
         }
     }
 }

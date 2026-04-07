@@ -45,11 +45,11 @@ namespace Latihan3.Controllers
                 return Json(new { success = false, message = "QR Code tidak valid." });
             }
 
-            // 1. Cari Guru berdasarkan NIP
-            var guruId = await _db.GetGuruIdByNipAsync(nip);
-            if (guruId == null)
+            // 1. Cari guru berdasarkan nip
+            var guruid = await _db.GetguruidBynipAsync(nip);
+            if (guruid == null)
             {
-                return Json(new { success = false, message = "Guru tidak ditemukan (NIP tidak terdaftar)." });
+                return Json(new { success = false, message = "guru tidak ditemukan (nip tidak terdaftar)." });
             }
 
             // --- PERBAIKAN PENTING ---
@@ -58,25 +58,25 @@ namespace Latihan3.Controllers
 
             // 2. Cek apakah sudah absen hari ini
             // JANGAN PAKAI DateTime.Now, tapi pakai 'waktuSekarang' yang sudah di-set ke WIB
-            var isAlready = await _db.IsAlreadyPresentAsync(guruId.Value, waktuSekarang);
+            var isAlready = await _db.IsAlreadyPresentAsync(guruid.Value, waktuSekarang);
 
             if (isAlready)
             {
-                var nama = await _db.GetGuruNamaByIdAsync(guruId.Value);
-                return Json(new { success = false, message = $"Guru '{nama}' sudah melakukan absensi hari ini." });
+                var nama = await _db.GetgurunamaByidAsync(guruid.Value);
+                return Json(new { success = false, message = $"guru '{nama}' sudah melakukan absensi hari ini." });
             }
 
             // 3. Simpan Absensi (Otomatis Hadir)
-            var abs = new AbsensiGuru
+            var abs = new absensiguru
             {
-                Id = guruId.Value,
-                Tanggal = waktuSekarang, // Konsisten menggunakan waktuSekarang
-                Status = "Hadir",
-                Keterangan = "Scan QR Code"
+                id = guruid.Value,
+                tanggal = waktuSekarang, // Konsisten menggunakan waktuSekarang
+                status = "Hadir",
+                keterangan = "Scan QR Code"
             };
 
             await _db.InsertAbsensiAsync(abs);
-            var namaSukses = await _db.GetGuruNamaByIdAsync(guruId.Value);
+            var namaSukses = await _db.GetgurunamaByidAsync(guruid.Value);
 
             return Json(new { success = true, message = $"Selamat datang, {namaSukses}!", nama = namaSukses });
         }
@@ -86,16 +86,16 @@ namespace Latihan3.Controllers
         public async Task<IActionResult> Create()
         {
             // --- PERBAIKAN DISINI ---
-            // JANGAN panggil _db.GetGuruListAsync()
+            // JANGAN panggil _db.GetguruListAsync()
             // Set ViewBag menjadi NULL agar HTML <select> kosong saat awal load.
-            ViewBag.GuruList = null;
+            ViewBag.guruList = null;
 
-            // Kode setup waktu tetap sama
+            // kode setup waktu tetap sama
             var waktuSekarangWIB = DateTime.UtcNow.AddHours(7);
-            var model = new AbsensiGuru
+            var model = new absensiguru
             {
-                Tanggal = waktuSekarangWIB,
-                Status = "Hadir"
+                tanggal = waktuSekarangWIB,
+                status = "Hadir"
             };
 
             return View(model);
@@ -103,24 +103,24 @@ namespace Latihan3.Controllers
 
         [HttpPost("Create")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(AbsensiGuru abs)
+        public async Task<IActionResult> Create(absensiguru abs)
         {
-            ModelState.Remove("NamaGuru");
-            ModelState.Remove("NIP");
-            ModelState.Remove("AbsensiId");
+            ModelState.Remove("namaguru");
+            ModelState.Remove("nip");
+            ModelState.Remove("absensiid");
 
             if (!ModelState.IsValid)
             {
                 // JIKA ERROR: Kita harus me-load data guru yang SUDAH DIPILIH saja
                 // Jangan load semua ribuan guru lagi.
-                if (abs.Id != 0)
+                if (abs.id != 0)
                 {
-                    var existingGuru = await _db.GetGuruByIdAsync(abs.Id);
-                    if (existingGuru != null)
+                    var existingguru = await _db.GetGuruByIdAsync(abs.id);
+                    if (existingguru != null)
                     {
                         // Buat list isi 1 item saja untuk mengisi dropdown kembali
-                        var singleList = new List<object> { new { Id = existingGuru.Id, Nama = existingGuru.Nama } };
-                        ViewBag.GuruList = new SelectList(singleList, "Id", "Nama", abs.Id);
+                        var singleList = new List<object> { new { id = existingguru.id, nama = existingguru.nama } };
+                        ViewBag.guruList = new SelectList(singleList, "id", "nama", abs.id);
                     }
                 }
 
@@ -128,29 +128,29 @@ namespace Latihan3.Controllers
             }
 
             // Cek duplikasi absensi
-            var isAlready = await _db.IsAlreadyPresentAsync(abs.Id, abs.Tanggal);
+            var isAlready = await _db.IsAlreadyPresentAsync(abs.id, abs.tanggal);
             if (isAlready)
             {
-                ModelState.AddModelError("", "Guru ini sudah absen.");
+                ModelState.AddModelError("", "guru ini sudah absen.");
 
                 // Load ulang data guru yang dipilih saja (sama seperti di atas)
-                var existingGuru = await _db.GetGuruByIdAsync(abs.Id);
-                if (existingGuru != null)
+                var existingguru = await _db.GetGuruByIdAsync(abs.id);
+                if (existingguru != null)
                 {
-                    var singleList = new List<object> { new { Id = existingGuru.Id, Nama = existingGuru.Nama } };
-                    ViewBag.GuruList = new SelectList(singleList, "Id", "Nama", abs.Id);
+                    var singleList = new List<object> { new { id = existingguru.id, nama = existingguru.nama } };
+                    ViewBag.guruList = new SelectList(singleList, "id", "nama", abs.id);
                 }
                 return View(abs);
             }
 
             await _db.InsertAbsensiAsync(abs);
-            // 2. Ambil Nama Guru (Opsional: Agar pesan lebih spesifik)
-            var guru = await _db.GetGuruByIdAsync(abs.Id);
-            string namaGuru = guru?.Nama ?? "Guru";
+            // 2. Ambil nama guru (Opsional: Agar pesan lebih spesifik)
+            var guru = await _db.GetGuruByIdAsync(abs.id);
+            string namaguru = guru?.nama ?? "guru";
 
             // 3. Simpan Pesan Sukses ke TempData
             // TempData akan hilang otomatis setelah dibaca satu kali
-            TempData["ok"] = $"Berhasil! Data absensi untuk '{namaGuru}' telah disimpan.";
+            TempData["ok"] = $"Berhasil! Data absensi untuk '{namaguru}' telah disimpan.";
 
             // 4. Redirect ke Index
             return RedirectToAction(nameof(Index));
@@ -160,11 +160,11 @@ namespace Latihan3.Controllers
         [HttpGet("Edit/{id}")]
         public async Task<IActionResult> Edit(int id)
         {
-            var abs = await _db.GetAbsensiByIdAsync(id);
+            var abs = await _db.GetAbsensiByidAsync(id);
             if (abs == null) return NotFound();
 
-            var gurus = await _db.GetGuruListAsync();
-            ViewBag.GuruList = new SelectList(gurus, "Id", "Nama", abs.Id);
+            var gurus = await _db.GetguruListAsync();
+            ViewBag.guruList = new SelectList(gurus, "id", "nama", abs.id);
 
             return View(abs);
         }
@@ -172,19 +172,19 @@ namespace Latihan3.Controllers
         // Method Edit (POST)
         [HttpPost("Edit/{id}")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, AbsensiGuru abs)
+        public async Task<IActionResult> Edit(int id, absensiguru abs)
         {
             // --- LANGKAH 1 & 2 (AMBIL DATA LAMA & PERBAIKI DATA) ---
-            var dataLama = await _db.GetAbsensiByIdAsync(id);
+            var dataLama = await _db.GetAbsensiByidAsync(id);
             if (dataLama == null) return NotFound();
 
-            abs.AbsensiId = id;
-            abs.Id = dataLama.Id; // Pastikan Guru ID tidak berubah/hilang
+            abs.absensiid = id;
+            abs.id = dataLama.id; // Pastikan guru id tidak berubah/hilang
 
-            ModelState.Remove("NamaGuru");
-            ModelState.Remove("NIP");
+            ModelState.Remove("namaguru");
+            ModelState.Remove("nip");
 
-            // --- LANGKAH 3: VALIDASI ---
+            // --- LANGKAH 3: VALidASI ---
             if (!ModelState.IsValid)
             {
                 return View(abs);
@@ -203,8 +203,8 @@ namespace Latihan3.Controllers
 
             // --- PERBAIKAN: TAMBAHKAN PESAN SUKSES ---
             // Ambil nama guru lagi untuk pesan notifikasi
-            var namaGuru = await _db.GetGuruNamaByIdAsync(abs.Id);
-            string namaUntukPesan = namaGuru ?? "Guru";
+            var namaguru = await _db.GetgurunamaByidAsync(abs.id);
+            string namaUntukPesan = namaguru ?? "guru";
 
             TempData["ok"] = $"Data absensi milik '{namaUntukPesan}' berhasil diperbarui.";
             // ------------------------------------------
@@ -216,7 +216,7 @@ namespace Latihan3.Controllers
         [HttpGet("Delete/{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var abs = await _db.GetAbsensiByIdAsync(id);
+            var abs = await _db.GetAbsensiByidAsync(id);
             if (abs == null) return NotFound();
             return View(abs);
         }
@@ -227,7 +227,7 @@ namespace Latihan3.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             // 1. Ambil detail data dulu SEBELUM dihapus (untuk mendapatkan nama)
-            var abs = await _db.GetAbsensiByIdAsync(id);
+            var abs = await _db.GetAbsensiByidAsync(id);
 
             // Jika data sudah tidak ada, langsung balik saja
             if (abs == null)
@@ -236,14 +236,14 @@ namespace Latihan3.Controllers
             }
 
             // 2. Simpan nama gurunya ke variabel
-            // (Perhatikan: abs.NamaGuru sudah tersedia karena query GetAbsensiByIdAsync melakukan JOIN)
-            string namaGuru = abs.NamaGuru ?? "Guru";
+            // (Perhatikan: abs.namaguru sudah tersedia karena query GetAbsensiByidAsync melakukan JOIN)
+            string namaguru = abs.namaguru ?? "guru";
 
             // 3. Hapus Data
             await _db.DeleteAbsensiAsync(id);
 
             // 4. Buat Pesan Sukses
-            TempData["ok"] = $"Data absensi milik '{namaGuru}' telah berhasil dihapus.";
+            TempData["ok"] = $"Data absensi milik '{namaguru}' telah berhasil dihapus.";
 
             return RedirectToAction(nameof(Index));
         }
@@ -254,21 +254,21 @@ namespace Latihan3.Controllers
             int sTahun = tahun ?? DateTime.Now.Year;
 
             // Hitung total data berdasarkan kata kunci pencarian
-            int totalGuruMatch = await _db.GetTotalGuruCountAsync(search);
+            int totalguruMatch = await _db.GetTotalguruCountAsync(search);
 
             ViewBag.SelectedBulan = sBulan;
             ViewBag.SelectedTahun = sTahun;
             ViewBag.CurrentPage = page;
             ViewBag.SearchTerm = search;
-            ViewBag.TotalMatch = totalGuruMatch; // Untuk teks "Menampilkan X data"
-            ViewBag.TotalPages = (int)Math.Ceiling((double)totalGuruMatch / pageSize);
+            ViewBag.TotalMatch = totalguruMatch; // Untuk teks "Menampilkan X data"
+            ViewBag.TotalPages = (int)Math.Ceiling((double)totalguruMatch / pageSize);
 
             var rekap = await _db.GetPagedRekapAbsensiAsync(sBulan, sTahun, page, pageSize, search);
             return View(rekap);
         }
         // ================= ENDPOINT BARU UNTUK SELECT2 AJAX =================
-        [HttpGet("SearchGuru")]
-        public async Task<IActionResult> SearchGuru(string term) // 'term' adalah parameter default Select2
+        [HttpGet("Searchguru")]
+        public async Task<IActionResult> Searchguru(string term) // 'term' adalah parameter default Select2
         {
             if (string.IsNullOrWhiteSpace(term))
             {
@@ -276,13 +276,13 @@ namespace Latihan3.Controllers
             }
 
             // Panggil query search yang baru dibuat
-            var data = await _db.SearchGuruByNameAsync(term);
+            var data = await _db.SearchguruByNameAsync(term);
 
             // Format JSON harus sesuai standar Select2: { id: ..., text: ... }
             var result = data.Select(g => new
             {
-                id = g.Id,
-                text = $"{g.Nama} - {g.NIP}" // Bisa digabung agar informatif
+                id = g.id,
+                text = $"{g.nama} - {g.nip}" // Bisa digabung agar informatif
             });
 
             return Json(new { results = result });

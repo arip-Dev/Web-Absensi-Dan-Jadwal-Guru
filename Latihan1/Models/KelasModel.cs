@@ -1,28 +1,28 @@
 ﻿namespace Latihan1.Models
 {
-    public class KelasModel
+    public class kelasModel
     {
-        public int Id { get; set; }
-        public string Tingkat { get; set; } = "X";   // X, XI, XII
-        public string Nama { get; set; } = "";       // X1, X2, ...
-        public bool IsActive { get; set; } = true;
-        public DateTime? CreatedAt { get; set; }
+        public int id { get; set; }
+        public string tingkat { get; set; } = "X";   // X, XI, XII
+        public string nama { get; set; } = "";       // X1, X2, ...
+        public bool isactive { get; set; } = true;
+        public DateTime? createdat { get; set; }
     }
 
-    public class KelasListVm
+    public class kelasListVm
     {
-        public string? Tingkat { get; set; }                 // filter tingkat (null = grid tingkat)
-        public IEnumerable<KelasModel> Items { get; set; } = Enumerable.Empty<KelasModel>();
+        public string? tingkat { get; set; }                 // filter tingkat (null = grid tingkat)
+        public IEnumerable<kelasModel> Items { get; set; } = Enumerable.Empty<kelasModel>();
     }
 
-    public class KelasGroupVm
+    public class kelasGroupVm
     {
-        public string Tingkat { get; set; } = "";
+        public string tingkat { get; set; } = "";
         public int Count { get; set; }
     }
-    public class KelasJadwalVm
+    public class kelasjadwalVm
     {
-        public KelasModel Kelas { get; set; } = new();
+        public kelasModel kelas { get; set; } = new();
         public IEnumerable<Latihan1.Services.DapperDb.JadwalRow> Items { get; set; }
             = Enumerable.Empty<Latihan1.Services.DapperDb.JadwalRow>();
     }

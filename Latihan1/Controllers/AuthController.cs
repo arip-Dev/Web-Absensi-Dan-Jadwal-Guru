@@ -30,25 +30,25 @@ namespace Latihan1.Controllers
         [HttpGet("Auth/Login")]
         public IActionResult Login(string? returnUrl = null, string? from = null)
         {
-            // --- 1. DETEKSI USER SUDAH LOGIN TAPI COBA TEMBAK URL ADMIN (GURU) ---
+            // --- 1. DETEKSI USER SUDAH LOGIN TAPI COBA TEMBAK URL ADMIN (guru) ---
             if (User.Identity?.IsAuthenticated == true)
             {
-                // Jika dia Guru tapi mencoba mengakses URL yang mengandung kata "Admin"
-                if (User.IsInRole("Guru") && !string.IsNullOrEmpty(returnUrl) &&
+                // Jika dia guru tapi mencoba mengakses URL yang mengandung kata "Admin"
+                if (User.IsInRole("guru") && !string.IsNullOrEmpty(returnUrl) &&
                     returnUrl.Contains("/Admin", StringComparison.OrdinalIgnoreCase))
                 {
-                    ViewBag.Error = "Akses Ditolak: Akun Anda (Guru) tidak diizinkan mengakses halaman Admin.";
+                    ViewBag.Error = "Akses Ditolak: Akun Anda (guru) tidak diizinkan mengakses halaman Admin.";
                     return View();
                 }
 
                 // Jika dia Admin atau sedang proses normal, arahkan sesuai logika Anda yang lama
                 string username = User.Identity?.Name ?? "Unknown";
-                string role = User.FindFirst(ClaimTypes.Role)?.Value ?? "Guru";
-                string guruId = User.FindFirst("GuruId")?.Value ?? "0";
+                string role = User.FindFirst(ClaimTypes.Role)?.Value ?? "guru";
+                string guruid = User.FindFirst("guruid")?.Value ?? "0";
 
-                if (from == "absensi") return RedirectToAbsensiWithToken(username, role, guruId);
+                if (from == "absensi") return RedirectToAbsensiWithToken(username, role, guruid);
                 if (User.IsInRole("Admin")) return RedirectToAction("Admin_page", "Admin");
-                return RedirectToLatihan2WithToken(username, role, guruId);
+                return RedirectToLatihan2WithToken(username, role, guruid);
             }
 
             // --- 2. DETEKSI USER BELUM LOGIN COBA TEMBAK URL ---
@@ -70,10 +70,10 @@ namespace Latihan1.Controllers
         {
             if (!ModelState.IsValid) return View(vm);
 
-            var user = await _db.GetUserByUsernameAsync(vm.Username);
+            var user = await _db.GetUserByUsernameAsync(vm.username);
             if (user is null || _hasher.VerifyHashedPassword(user.Username, user.PasswordHash, vm.Password) == PasswordVerificationResult.Failed)
             {
-                ViewBag.Error = "Username atau password salah.";
+                ViewBag.Error = "username atau password salah.";
                 return View(vm);
             }
 
@@ -83,10 +83,10 @@ namespace Latihan1.Controllers
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.Role, user.Role)
             };
-            if (user.GuruId is not null) claims.Add(new Claim("GuruId", user.GuruId.Value.ToString()));
+            if (user.GuruId is not null) claims.Add(new Claim("guruid", user.GuruId.Value.ToString()));
 
-            var identity = new ClaimsIdentity(claims, "CookieSekolah");
-            await HttpContext.SignInAsync("CookieSekolah", new ClaimsPrincipal(identity));
+            var Identity = new ClaimsIdentity(claims, "CookieSekolah");
+            await HttpContext.SignInAsync("CookieSekolah", new ClaimsPrincipal(Identity));
 
             // REDIRECT LOGIC
             if (from == "absensi") return RedirectToAbsensiWithToken(user.Username, user.Role, user.GuruId?.ToString() ?? "0");
@@ -94,7 +94,7 @@ namespace Latihan1.Controllers
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl)) return Redirect(returnUrl);
 
             if (user.Role == "Admin") return RedirectToAction("Admin_page", "Admin");
-            if (user.Role == "Guru") return RedirectToLatihan2WithToken(user.Username, user.Role, user.GuruId?.ToString() ?? "0");
+            if (user.Role == "guru") return RedirectToLatihan2WithToken(user.Username, user.Role, user.GuruId?.ToString() ?? "0");
 
             return RedirectToAction("Index", "Home");
         }
@@ -107,17 +107,17 @@ namespace Latihan1.Controllers
                 return RedirectToAction("Login", new { from = "absensi" });
 
             var username = User.Identity.Name ?? "UnknownUser";
-            var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "Guru";
-            var guruId = User.FindFirst("GuruId")?.Value ?? "0";
+            var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "guru";
+            var guruid = User.FindFirst("guruid")?.Value ?? "0";
 
-            return RedirectToAbsensiWithToken(username, role, guruId);
+            return RedirectToAbsensiWithToken(username, role, guruid);
         }
 
         // URL: /Auth/Denied
         [HttpGet("Auth/Denied")]
         public IActionResult Denied()
         {
-            // Jika user sudah login tapi terlempar ke sini, berarti Role tidak cocok
+            // Jika user sudah login tapi terlempar ke sini, berarti role tidak cocok
             if (User.Identity?.IsAuthenticated == true)
             {
                 ViewBag.Error = "Akses Ditolak: Akun Anda tidak memiliki izin untuk halaman Admin ini.";
@@ -149,21 +149,21 @@ namespace Latihan1.Controllers
 
         // --- HELPER METHODS ---
 
-        private IActionResult RedirectToAbsensiWithToken(string username, string role, string guruId)
+        private IActionResult RedirectToAbsensiWithToken(string username, string role, string guruid)
         {
-            var tokenString = GenerateJwtToken(username, role, guruId);
+            var tokenString = GenerateJwtToken(username, role, guruid);
             var absensiBaseUrl = (_config["Latihan3:BaseUrl"] ?? "http://localhost:5035").TrimEnd('/');
             return Redirect($"{absensiBaseUrl}/Auth/SsoLogin?token={tokenString}");
         }
 
-        private IActionResult RedirectToLatihan2WithToken(string username, string role, string guruId)
+        private IActionResult RedirectToLatihan2WithToken(string username, string role, string guruid)
         {
-            var tokenString = GenerateJwtToken(username, role, guruId);
+            var tokenString = GenerateJwtToken(username, role, guruid);
             var latihan2BaseUrl = (_config["Latihan2:BaseUrl"] ?? "http://localhost:5001").TrimEnd('/');
             return Redirect($"{latihan2BaseUrl}/Auth/SsoLogin?token={tokenString}");
         }
 
-        private string GenerateJwtToken(string username, string role, string guruId)
+        private string GenerateJwtToken(string username, string role, string guruid)
         {
             var secretKey = _config["JwtSettings:SecretKey"];
             var keyBytes = Encoding.UTF8.GetBytes(secretKey!);
@@ -171,7 +171,7 @@ namespace Latihan1.Controllers
             {
                 new Claim("username", username),
                 new Claim("role", role),
-                new Claim("GuruId", guruId)
+                new Claim("guruid", guruid)
             };
 
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -210,7 +210,7 @@ namespace Latihan1.Controllers
                 var jwtToken = (JwtSecurityToken)validatedToken;
                 var username = jwtToken.Claims.First(x => x.Type == "username").Value;
                 var role = jwtToken.Claims.First(x => x.Type == "role").Value;
-                var guruId = jwtToken.Claims.FirstOrDefault(x => x.Type == "GuruId")?.Value;
+                var guruid = jwtToken.Claims.FirstOrDefault(x => x.Type == "guruid")?.Value;
 
                 // Buat Sesi Cookie untuk Latihan1
                 var claims = new List<Claim>
@@ -218,10 +218,10 @@ namespace Latihan1.Controllers
             new Claim(ClaimTypes.Name, username),
             new Claim(ClaimTypes.Role, role)
         };
-                if (!string.IsNullOrEmpty(guruId)) claims.Add(new Claim("GuruId", guruId));
+                if (!string.IsNullOrEmpty(guruid)) claims.Add(new Claim("guruid", guruid));
 
-                var identity = new ClaimsIdentity(claims, "CookieSekolah");
-                await HttpContext.SignInAsync("CookieSekolah", new ClaimsPrincipal(identity));
+                var Identity = new ClaimsIdentity(claims, "CookieSekolah");
+                await HttpContext.SignInAsync("CookieSekolah", new ClaimsPrincipal(Identity));
 
                 // Setelah sukses buat cookie Latihan1, lempar ke Admin Page
                 return RedirectToAction("Admin_page", "Admin");

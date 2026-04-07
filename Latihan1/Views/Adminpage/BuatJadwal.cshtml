@@ -1,20 +1,20 @@
 ﻿@{
-    ViewData["Title"] = "Buat Jadwal";
+    ViewData["Title"] = "Buat jadwal";
     Layout = "_Layout";
 }
 
 <section class="mx-auto max-w-7xl px-4 py-8">
     <div class="mb-6">
         <p class="text-sm text-slate-500">Dashboard Admin</p>
-        <h1 class="mt-1 text-3xl font-bold tracking-tight text-slate-900">Buat Jadwal</h1>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight text-slate-900">Buat jadwal</h1>
         <p class="mt-1 text-slate-500">Buat dan kelola jadwal mengajar guru</p>
     </div>
 
     <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 class="text-xl font-semibold">Form Jadwal Baru</h2>
+        <h2 class="text-xl font-semibold">Form jadwal Baru</h2>
         <p class="mt-1 text-slate-500">Isi dari database • Cegah jadwal bentrok</p>
 
-        <form id="formJadwal" class="mt-6 grid gap-5 md:grid-cols-2">
+        <form id="formjadwal" class="mt-6 grid gap-5 md:grid-cols-2">
             <!-- Mata Pelajaran -->
             <div class="md:col-span-2">
                 <label class="mb-2 block text-sm font-medium text-slate-700">Mata Pelajaran</label>
@@ -23,9 +23,9 @@
                 </select>
             </div>
 
-            <!-- NAMA GURU (Combobox + search) -->
+            <!-- nama guru (Combobox + search) -->
             <div class="md:col-span-2">
-                <label class="mb-2 block text-sm font-medium text-slate-700">Nama Guru</label>
+                <label class="mb-2 block text-sm font-medium text-slate-700">nama guru</label>
 
                 <div id="guruCombo" class="relative">
                     <button id="guruInput" type="button"
@@ -51,14 +51,14 @@
                 <p class="mt-1 text-xs text-slate-500">Klik field di atas untuk membuka daftar guru, lalu ketik untuk mencari.</p>
             </div>
 
-            <!-- Info Guru -->
+            <!-- Info guru -->
             <div class="md:col-span-2">
                 <div id="guruInfo" class="hidden rounded-xl border border-slate-200 bg-slate-50 p-4">
                     <div class="flex flex-wrap items-center gap-3">
-                        <span class="text-sm text-slate-600">Guru terpilih:</span>
-                        <span id="giNama" class="font-semibold text-slate-900">-</span>
+                        <span class="text-sm text-slate-600">guru terpilih:</span>
+                        <span id="ginama" class="font-semibold text-slate-900">-</span>
                         <span class="text-sm text-slate-500">•</span>
-                        <span class="text-sm">Mapel: <b id="giMapel">-</b></span>
+                        <span class="text-sm">mapel: <b id="gimapel">-</b></span>
                         <span class="text-sm text-slate-500">•</span>
                         <span class="text-sm">Beban minggu ini: <b id="giLoad">0</b> / <b id="giMax">0</b> jam</span>
                         <span id="giBadge" class="rounded-full px-2 py-0.5 text-xs"></span>
@@ -66,17 +66,17 @@
                 </div>
             </div>
 
-            <!-- Kelas -->
+            <!-- kelas -->
             <div>
-                <label class="mb-2 block text-sm font-medium text-slate-700">Kelas</label>
+                <label class="mb-2 block text-sm font-medium text-slate-700">kelas</label>
                 <select id="kelas" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:border-blue-500 focus:outline-none">
                     <option value="" selected>Pilih kelas</option>
                 </select>
             </div>
 
-            <!-- Hari -->
+            <!-- hari -->
             <div>
-                <label class="mb-2 block text-sm font-medium text-slate-700">Hari</label>
+                <label class="mb-2 block text-sm font-medium text-slate-700">hari</label>
                 <select id="hari" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:border-blue-500 focus:outline-none">
                     <option value="" selected>Pilih hari</option>
                     <option value="1">Senin</option>
@@ -88,10 +88,10 @@
                 </select>
             </div>
 
-            <!-- Ruangan (opsional — backend saat ini belum menyimpan) -->
+            <!-- ruangan (opsional — backend saat ini belum menyimpan) -->
             <div>
-                <label class="mb-2 block text-sm font-medium text-slate-700">Kelas / Ruangan</label>
-                <input id="ruangan" type="text" placeholder="Contoh: Kelas 10A / Lab Kimia"
+                <label class="mb-2 block text-sm font-medium text-slate-700">kelas / ruangan</label>
+                <input id="ruangan" type="text" placeholder="Contoh: kelas 10A / Lab Kimia"
                        class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 focus:border-blue-500 focus:outline-none" />
             </div>
 
@@ -114,7 +114,7 @@
                 <button id="btnSubmit" type="submit"
                         class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-medium text-white shadow hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v6h5.66V9h3.84L12 2z" /></svg>
-                    Simpan Jadwal
+                    Simpan jadwal
                 </button>
                 <button type="button" id="btnReset"
                         class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 font-medium text-slate-700 hover:bg-slate-50">
@@ -128,7 +128,7 @@
     <!-- DAFTAR -->
     <div class="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div class="mb-5">
-            <h2 class="text-2xl font-semibold">Daftar Jadwal</h2>
+            <h2 class="text-2xl font-semibold">Daftar jadwal</h2>
             <p class="mt-1 text-slate-500">Real-time dari DB</p>
         </div>
 
@@ -145,14 +145,14 @@
 
         <div id="viewTable">
             <div class="overflow-x-auto">
-                <table id="tblJadwal" class="min-w-full overflow-hidden rounded-2xl">
+                <table id="tbljadwal" class="min-w-full overflow-hidden rounded-2xl">
                     <thead class="bg-slate-50 text-slate-600">
                         <tr>
-                            <th class="px-6 py-3 text-left text-sm font-semibold">Guru</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold">guru</th>
                             <th class="px-6 py-3 text-left text-sm font-semibold">Mata Pelajaran</th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold">Hari</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold">hari</th>
                             <th class="px-6 py-3 text-left text-sm font-semibold">Waktu</th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold">Kelas/Ruangan</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold">kelas/ruangan</th>
                             <th class="px-6 py-3 text-left text-sm font-semibold">Aksi</th>
                         </tr>
                     </thead>
@@ -190,13 +190,14 @@
         }
     </style>
 
-    @section Scripts {
+@section Scripts {
         <script>
-            // ===== API endpoints (disesuaikan dgn controller) =====
+            // ===== API endpoints =====
             const api = {
               mapel: '/api/schedule/mapel',
               kelas: '/api/schedule/kelas',
-              guruByMapel: (m) => `/api/schedule/guru?mapel=${encodeURIComponent(m)}`,
+              // KEMBALI MENGGUNAKAN STRING NAMA MAPEL
+              guruBymapel: (m) => `/api/schedule/guru?mapel=${encodeURIComponent(m)}`,
               list: '/api/schedule',
               create: '/api/schedule',
               update: (id) => `/api/schedule/${id}`,
@@ -212,31 +213,26 @@
               ruangan: document.getElementById('ruangan'),
               mulai: document.getElementById('mulai'),
               selesai: document.getElementById('selesai'),
-              form: document.getElementById('formJadwal'),
+              form: document.getElementById('formjadwal'),
               btnSubmit: document.getElementById('btnSubmit'),
               btnReset: document.getElementById('btnReset'),
               msg: document.getElementById('msg'),
 
-              // combobox guru
               guruInput: document.getElementById('guruInput'),
               guruInputText: document.getElementById('guruInputText'),
               guruPanel: document.getElementById('guruPanel'),
               guruSearch: document.getElementById('guruSearch'),
               guruList: document.getElementById('guruList'),
 
-              // info guru
               giWrap: document.getElementById('guruInfo'),
-              giNama: document.getElementById('giNama'),
-              giMapel: document.getElementById('giMapel'),
+              ginama: document.getElementById('ginama'),
+              gimapel: document.getElementById('gimapel'),
               giLoad: document.getElementById('giLoad'),
               giMax: document.getElementById('giMax'),
               giBadge: document.getElementById('giBadge'),
 
-              // slot
               slotWrap: document.getElementById('slotWrap'),
-
-              // list & kalender
-              tblBody: document.querySelector('#tblJadwal tbody'),
+              tblBody: document.querySelector('#tbljadwal tbody'),
               tabTable: document.getElementById('tabTable'),
               tabCalendar: document.getElementById('tabCalendar'),
               viewTable: document.getElementById('viewTable'),
@@ -252,7 +248,6 @@
               el.msg.className = 'text-sm ' + (ok ? 'text-emerald-600' : 'text-rose-600');
             }
 
-            // dukung angka 1..7 atau string "Senin"
             function dayLabel(h){
               if (typeof h === 'number') {
                 return {1:'Senin',2:'Selasa',3:'Rabu',4:'Kamis',5:'Jumat',6:'Sabtu',7:'Minggu'}[h] || '-';
@@ -260,66 +255,77 @@
               if (!h) return '-';
               const map = {senin:'Senin', selasa:'Selasa', rabu:'Rabu', kamis:'Kamis', jumat:'Jumat', sabtu:'Sabtu', minggu:'Minggu'};
               const k = String(h).toLowerCase();
-              return map[k] || h; // fallback tampilkan apa adanya
+              return map[k] || h;
             }
 
-            // ====== Definisi slot jam pelajaran ======
             const SLOT_DEFS = [
-              ["07:00","08:00"],
-              ["08:00","09:00"],
-              ["09:00","10:00"],
-              ["10:00","11:00"],
-              ["11:00","12:00"],
-              ["12:00","13:00"],
-              ["13:00","14:00"],
-              ["14:00","15:00"],
-              ["15:00","16:00"],
+              ["07:00","08:00"], ["08:00","09:00"], ["09:00","10:00"],
+              ["10:00","11:00"], ["11:00","12:00"], ["12:00","13:00"],
+              ["13:00","14:00"], ["14:00","15:00"], ["15:00","16:00"],
             ];
 
-            // ====== STATE ======
-            let guruRaw = []; // [{ id, nama, mapel, maxWeeklyLoad, currentLoadMinutes/currentLoadHours }, ...]
-            let editingId = null;      // << jadwal yang sedang diedit (kalau ada)
-            const originalBtnText = "Simpan Jadwal";
+            let guruRaw = [];
+            let editingid = null;
+            const originalBtnText = "Simpan jadwal";
 
             // ====== INIT ======
             (async function init(){
-              // mapel
-              const m = await fetch(api.mapel).then(r=>r.json());
-              el.mapel.innerHTML = `<option value="">Pilih mata pelajaran</option>` + m.map(x=>`<option>${x}</option>`).join('');
+              // KEMBALI MENGGUNAKAN STRING ARRAY UNTUK MAPEL
+              try {
+                  const m = await fetch(api.mapel).then(r=>r.json());
+                  el.mapel.innerHTML = `<option value="">Pilih mata pelajaran</option>` +
+                      m.map(x => {
+                          const val = typeof x === 'object' ? (x.nama || x.id || '') : String(x);
+                          return `<option value="${val}">${val}</option>`;
+                      }).join('');
+              } catch (e) { }
 
-              // kelas
-              const k = await fetch(api.kelas).then(r=>r.json());
-              el.kelas.innerHTML = `<option value="">Pilih kelas</option>` + k.map(x=>`<option value="${x.id}">${x.tingkat}-${x.namaSingkat}</option>`).join('');
+              try {
+                  const k = await fetch(api.kelas).then(r=>r.json());
+                  el.kelas.innerHTML = `<option value="">Pilih kelas</option>` + k.map(x=>`<option value="${x.id}">${x.tingkat}-${x.namaSingkat || x.nama || ''}</option>`).join('');
+              } catch(e) { }
 
-              // build slot grid
               buildSlotGrid();
+              await reloadjadwal();
 
-              await reloadJadwal();
+              el.mapel.addEventListener('change', onmapelChange);
 
-              // events
-              el.mapel.addEventListener('change', onMapelChange);
-
-              // combobox guru
-              el.guruInput.addEventListener('click', () => {
-                if (!el.mapel.value.trim()) { setMsg('Pilih mata pelajaran terlebih dahulu.', false); return; }
-                openGuruPanel();
+              el.guruInput.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!el.mapel.value.trim()) {
+                    setMsg('Pilih mata pelajaran terlebih dahulu.', false);
+                    return;
+                }
+                el.guruPanel.classList.toggle('hidden');
+                if (!el.guruPanel.classList.contains('hidden')) {
+                    el.guruSearch.value = '';
+                    renderguruList(guruRaw);
+                    setTimeout(() => el.guruSearch.focus(), 10);
+                }
               });
+
+              document.addEventListener('click', (e) => {
+                if (!el.guruInput.contains(e.target) && !el.guruPanel.contains(e.target)) el.guruPanel.classList.add('hidden');
+              });
+              document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') el.guruPanel.classList.add('hidden');
+              });
+
               el.guruSearch.addEventListener('input', () => {
                 const q = (el.guruSearch.value||'').toLowerCase().trim();
-                const filtered = guruRaw.filter(g => (g.nama||'').toLowerCase().includes(q));
-                renderGuruList(filtered);
+                const filtered = guruRaw.filter(g => (g.nama || g.guru || '').toLowerCase().includes(q));
+                renderguruList(filtered);
               });
 
               el.btnReset.addEventListener('click', () => {
-              el.form.reset();
-              resetGuruInfo();
-              clearSlots();
-              editingId = null;                     // keluar dari mode edit
-              el.btnSubmit.textContent = originalBtnText;   // kembalikan label tombol
-              el.btnSubmit.disabled = false;
-              setMsg('');
-            });
-
+                el.form.reset();
+                resetguruInfo();
+                clearSlots();
+                editingid = null;
+                el.btnSubmit.textContent = originalBtnText;
+                el.btnSubmit.disabled = false;
+                setMsg('');
+              });
 
               el.form.addEventListener('submit', onSubmit);
               el.tabTable.addEventListener('click', ()=>setActiveTab('table'));
@@ -329,7 +335,6 @@
               setActiveTab('table');
             })();
 
-            // ====== Slot UI ======
             function buildSlotGrid(){
               el.slotWrap.innerHTML = SLOT_DEFS.map((pair, idx) => {
                 const [s, e] = pair;
@@ -366,66 +371,38 @@
               return true;
             }
 
-            // ====== Combobox Guru ======
-            let outsideHandler = null;
-            function openGuruPanel() {
-              if (el.guruPanel.classList.contains('hidden')) {
-                el.guruPanel.classList.remove('hidden');
-                el.guruSearch.value = '';
-                renderGuruList(guruRaw);
-                setTimeout(()=> el.guruSearch.focus(), 0);
-
-                outsideHandler = (e) => {
-                  if (!el.guruPanel.contains(e.target) && !el.guruInput.contains(e.target)) closeGuruPanel();
-                };
-                document.addEventListener('mousedown', outsideHandler);
-                document.addEventListener('keydown', escToClose);
-              }
-            }
-            function closeGuruPanel() {
-              if (!el.guruPanel.classList.contains('hidden')) {
-                el.guruPanel.classList.add('hidden');
-                if (outsideHandler) {
-                  document.removeEventListener('mousedown', outsideHandler);
-                  document.removeEventListener('keydown', escToClose);
-                  outsideHandler = null;
-                }
-              }
-            }
-            function escToClose(e){ if(e.key==='Escape') closeGuruPanel(); }
-
-            function renderGuruList(list){
+            function renderguruList(list){
               if (!Array.isArray(list) || list.length===0){
                 el.guruList.innerHTML = `<li class="px-3 py-2 text-slate-400">Tidak ada guru</li>`;
                 return;
               }
               el.guruList.innerHTML = list.map(g=>{
-                const minutes = (g.currentLoadMinutes ?? 0);
-                const hoursFromMinutes = Math.round((minutes/60)*10)/10;
-                const hours = (g.currentLoadHours ?? hoursFromMinutes);
-                const max = g.maxWeeklyLoad ?? 0;
+                const nama = g.nama || g.guru || g.GuruNama || '-';
+                const max = g.maxweeklyload || g.maxWeeklyLoad || 0;
+                const mapelName = g.mapel || g.mapelnama || '-';
+                const rawLoad = g.currentLoad || g.currentLoadMinutes || 0;
+                const hours = rawLoad > 50 ? Math.round((rawLoad/60)*10)/10 : rawLoad;
+
                 const ratio = (max>0) ? (hours/max) : 0;
                 const badgeClass = ratio>=1 ? 'bg-rose-100 text-rose-700' : ratio>=0.75 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700';
                 const badgeText  = ratio>=1 ? 'Penuh' : ratio>=0.75 ? 'Hampir penuh' : 'Tersedia';
 
                 return `
-                  <li class="flex items-center justify-between gap-3 px-3 py-2 hover:bg-slate-50 cursor-pointer"
-                      data-id="${g.id}" data-nama="${g.nama}" data-mapel="${g.mapel}"
+                  <li class="flex items-center justify-between gap-3 px-3 py-2 hover:bg-slate-50 cursor-pointer mapel-item"
+                      data-id="${g.id}" data-nama="${nama}" data-mapel="${mapelName}"
                       data-load="${hours}" data-max="${max}">
                     <div class="min-w-0">
-                      <div class="font-medium text-slate-900 truncate">${g.nama}</div>
-                      <div class="text-xs text-slate-500">Mapel: ${g.mapel} • Beban: ${hours} / ${max} jam</div>
+                      <div class="font-medium text-slate-900 truncate">${nama}</div>
+                      <div class="text-xs text-slate-500">mapel: ${mapelName} • Beban: ${hours} / ${max} jam</div>
                     </div>
                     <div class="text-[10px] rounded-full px-2 py-0.5 ${badgeClass}">${badgeText}</div>
                   </li>`;
               }).join('');
 
-              Array.from(el.guruList.querySelectorAll('li[data-id]')).forEach(li=>{
-                li.addEventListener('click', ()=> selectGuruFromLi(li));
-              });
+              Array.from(el.guruList.querySelectorAll('.mapel-item')).forEach(li=>li.addEventListener('click', ()=> selectguruFromLi(li)));
             }
 
-            function selectGuruFromLi(li){
+            function selectguruFromLi(li){
               const id   = parseInt(li.dataset.id||'0',10);
               const nama = li.dataset.nama || '';
               const mapel= li.dataset.mapel || '';
@@ -434,11 +411,11 @@
 
               el.guruHidden.value = String(id);
               el.guruInputText.textContent = nama || 'Pilih guru';
-              closeGuruPanel();
+              el.guruPanel.classList.add('hidden');
 
               el.giWrap.classList.remove('hidden');
-              el.giNama.textContent = nama || '-';
-              el.giMapel.textContent = mapel || '-';
+              el.ginama.textContent = nama || '-';
+              el.gimapel.textContent = mapel || '-';
               el.giLoad.textContent = isFinite(load)? load : 0;
               el.giMax.textContent  = isFinite(max)?  max  : 0;
 
@@ -447,274 +424,198 @@
               el.giBadge.textContent = ratio>=1 ? 'Penuh' : ratio>=0.75 ? 'Hampir penuh' : 'Tersedia';
             }
 
-            function resetGuruInfo(){
+            function resetguruInfo(){
               el.guruHidden.value = '';
               el.guruInputText.textContent = 'Pilih guru (pilih mapel dulu)';
               el.giWrap.classList.add('hidden');
-              el.giNama.textContent='-';
-              el.giMapel.textContent='-';
+              el.ginama.textContent='-';
+              el.gimapel.textContent='-';
               el.giLoad.textContent='0';
               el.giMax.textContent='0';
               el.giBadge.className='hidden';
               el.giBadge.textContent='';
             }
 
-            // ====== MAPEL CHANGE → LOAD GURU ======
-            async function onMapelChange() {
-              // setiap ganti mapel: reset guru terpilih, tutup panel, kosongkan slot
-              resetGuruInfo();
+            async function onmapelChange() {
+              resetguruInfo();
               clearSlots();
-              closeGuruPanel();
+              el.guruPanel.classList.add('hidden');
               setMsg('');
 
               const m = el.mapel.value.trim();
               if (!m) {
                 guruRaw = [];
+                el.guruInputText.textContent = 'Pilih guru (pilih mapel dulu)';
                 return;
               }
 
+              el.guruInputText.textContent = 'Memuat data guru...';
+
               try {
-                guruRaw = await fetch(api.guruByMapel(m)).then(r => r.json());
-              } catch {
+                const response = await fetch(api.guruBymapel(m));
+
+                if (!response.ok) {
+                    throw new Error("Kesalahan jaringan.");
+                }
+
+                guruRaw = await response.json();
+
+                if(guruRaw.length === 0) {
+                    el.guruInputText.textContent = 'Tidak ada guru terdaftar';
+                    setMsg(`Tidak ada guru untuk mata pelajaran ${m}. Pastikan relasinya diset di halaman Data Guru.`, false);
+                } else {
+                    el.guruInputText.textContent = 'Pilih guru...';
+                    // Render ulang daftar guru segera setelah data diterima
+                    renderguruList(guruRaw);
+                }
+              } catch (err) {
                 guruRaw = [];
-                setMsg('Gagal memuat daftar guru.', false);
+                el.guruInputText.textContent = 'Gagal memuat guru';
+                setMsg('Gagal memuat daftar guru dari server.', false);
               }
             }
 
-
-                        // ====== SUBMIT ======
             async function onSubmit(e){
               e.preventDefault();
               setMsg('');
 
-              const mapel  = el.mapel.value.trim();
-              const guruId = parseInt(el.guruHidden.value||'0',10);
-              const kelasId= parseInt(el.kelas.value||'0',10);
+              // KARENA VALUE DROPDOWN MAPEL ADALAH STRING NAMA, LANGSUNG AMBIL VALUE
+              const mapel = el.mapel.value.trim();
+
+              const guruid = parseInt(el.guruHidden.value||'0',10);
+              const kelasid= parseInt(el.kelas.value||'0',10);
               const hari   = parseInt(el.hari.value||'0',10);
               const ruangan= el.ruangan.value.trim();
 
-              // Ambil dari slot
               const selSlots = getSelectedSlots();
-              if(selSlots.length === 0){
-                setMsg('Pilih minimal satu slot jam pelajaran.', false); return;
-              }
-              if(!areSlotsContiguous(selSlots)){
-                setMsg('Slot yang dipilih harus berurutan (kontigu).', false); return;
-              }
-              const mulai   = selSlots[0].start;
+              if(selSlots.length === 0){ setMsg('Pilih minimal satu slot jam pelajaran.', false); return; }
+              if(!areSlotsContiguous(selSlots)){ setMsg('Slot yang dipilih harus berurutan (kontigu).', false); return; }
+
+              const mulai = selSlots[0].start;
               const selesai = selSlots[selSlots.length-1].end;
-              el.mulai.value   = mulai;
+              el.mulai.value = mulai;
               el.selesai.value = selesai;
 
-              if(!mapel || !guruId || !kelasId || !hari){
+              if(mapel === "" || !guruid || !kelasid || !hari){
                 setMsg('Lengkapi semua isian wajib.', false); return;
-              }
-              if(selesai <= mulai){
-                setMsg('Waktu selesai harus > waktu mulai.', false); return;
               }
 
               el.btnSubmit.disabled = true;
 
-              const payload = {
-                GuruId: guruId,
-                Mapel: mapel,
-                Hari: hari,
-                Mulai: mulai,
-                Selesai: selesai,
-                KelasId: kelasId,
-                Ruangan: ruangan
-              };
+              const payload = { guruid, mapel: mapel, hari, mulai, selesai, kelasid, ruangan };
 
               let res;
-              if (editingId !== null) {
-                // MODE EDIT → PUT
-                res = await fetch(api.update(editingId), {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(payload)
-                });
+              if (editingid !== null) {
+                res = await fetch(api.update(editingid), { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
               } else {
-                // MODE TAMBAH → POST
-                res = await fetch(api.create, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(payload)
-                });
+                res = await fetch(api.create, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
               }
 
-              if(res.status === 409){
-                const j = await res.text().catch(()=> 'Bentrok jadwal.');
-                setMsg(j || 'Bentrok jadwal.', false);
-                el.btnSubmit.disabled = false;
-                return;
-              }
-              if(!res.ok){
-                const j = await res.text().catch(()=> 'Gagal simpan.');
-                setMsg(j || 'Gagal simpan.', false);
-                el.btnSubmit.disabled = false;
-                return;
-              }
+              if(res.status === 409){ setMsg(await res.text().catch(()=>'Bentrok jadwal.'), false); el.btnSubmit.disabled = false; return; }
+              if(!res.ok){ setMsg(await res.text().catch(()=>'Gagal simpan.'), false); el.btnSubmit.disabled = false; return; }
 
-              setMsg(editingId !== null ? 'Perubahan jadwal disimpan.' : 'Jadwal tersimpan.', true);
-
-              // reset ke mode tambah lagi
+              setMsg(editingid !== null ? 'Perubahan jadwal disimpan.' : 'jadwal tersimpan.', true);
               el.form.reset();
-              resetGuruInfo();
+              resetguruInfo();
               clearSlots();
-              editingId = null;
+              editingid = null;
               el.btnSubmit.textContent = originalBtnText;
               el.btnSubmit.disabled = false;
-
-              await reloadJadwal();
+              await reloadjadwal();
             }
 
-            // ====== LIST ======
-            async function reloadJadwal(){
+            async function reloadjadwal(){
               const rows = await fetch(api.list).then(r=>r.json()).catch(()=>[]);
-              console.log('API /api/schedule →', rows);
               el.tblBody.innerHTML = rows.map(r => {
-              const id   = r.id;
-              const guruId  = r.guruId;
-              const guru = r.guru ?? r.guruNama ?? '-';
+              const guru = r.guru ?? r.gurunama ?? '-';
               const mapel = r.mapel ?? '-';
               const hari  = dayLabel(r.hari);
               const mulai = (r.mulai ?? '').toString().substring(0,5);
               const selesai = (r.selesai ?? '').toString().substring(0,5);
-              const kelasId = r.kelasId;
-              const kelas = r.kelas ?? r.kelasNama ?? '-';
+              const kelas = r.kelas ?? r.kelasnama ?? '-';
               const ruangan = r.ruangan ?? '';
 
               return `
                 <tr>
                   <td class="px-6 py-4">${guru}</td>
-                  <td class="px-6 py-4">
-                    <span class="rounded-full bg-slate-100 px-3 py-1 text-sm">${mapel}</span>
-                  </td>
+                  <td class="px-6 py-4"><span class="rounded-full bg-slate-100 px-3 py-1 text-sm">${mapel}</span></td>
                   <td class="px-6 py-4">${hari}</td>
                   <td class="px-6 py-4">${mulai} - ${selesai}</td>
                   <td class="px-6 py-4">${kelas}${ruangan ? ' / ' + ruangan : ''}</td>
                   <td class="px-6 py-4 text-sm">
-                    <button type="button"
-                            class="text-blue-600 hover:underline mr-3 btn-edit"
-                            data-id="${id}"
-                            data-guru-id="${guruId}"
-                            data-mapel="${mapel}"
-                            data-hari="${r.hari}"
-                            data-kelas-id="${kelasId}"
-                            data-mulai="${mulai}"
-                            data-selesai="${selesai}"
-                            data-ruangan="${ruangan}">
-                      Edit
-                    </button>
-                    <button type="button"
-                            class="text-rose-600 hover:underline btn-del"
-                            data-id="${id}">
-                      Hapus
-                    </button>
+                    <button type="button" class="text-blue-600 hover:underline mr-3 btn-edit"
+                        data-id="${r.id}" data-guru-id="${r.guruid}" data-mapel="${mapel}" data-hari="${r.hari}"
+                        data-kelas-id="${r.kelasid}" data-mulai="${mulai}" data-selesai="${selesai}" data-ruangan="${ruangan}">Edit</button>
+                    <button type="button" class="text-rose-600 hover:underline btn-del" data-id="${r.id}">Hapus</button>
                   </td>
                 </tr>`;
-            }).join('');
-            // pasang handler tombol edit & hapus
-            el.tblBody.querySelectorAll('.btn-del').forEach(btn => {
-              btn.addEventListener('click', onDeleteClick);
-            });
-            el.tblBody.querySelectorAll('.btn-edit').forEach(btn => {
-              btn.addEventListener('click', onEditClick);
-            });
+              }).join('');
 
-            //function delete jadwal
-              async function onDeleteClick(e) {
-              const id = parseInt(e.currentTarget.dataset.id || '0', 10);
-              if (!id) return;
-              if (!confirm('Hapus jadwal ini?')) return;
+              el.tblBody.querySelectorAll('.btn-del').forEach(btn => btn.addEventListener('click', onDeleteClick));
+              el.tblBody.querySelectorAll('.btn-edit').forEach(btn => btn.addEventListener('click', onEditClick));
 
-              const res = await fetch(api.delete(id), { method: 'DELETE' });
-              if (!res.ok && res.status !== 404) {
-                setMsg('Gagal menghapus jadwal.', false);
-                return;
-              }
-              setMsg('Jadwal dihapus.', true);
-              await reloadJadwal();
-            }
-            // function edit jadwal
-              async function onEditClick(e) {
-              const btn = e.currentTarget;
-              const id = parseInt(btn.dataset.id || '0', 10);
-              if (!id) return;
-
-              editingId = id;
-              el.btnSubmit.textContent = 'Update Jadwal';
-
-              // isi form dari data dataset
-              const mapel  = btn.dataset.mapel || '';
-              const guruId = parseInt(btn.dataset.guruId || '0', 10);
-              const hari   = btn.dataset.hari || '';
-              const kelasId= btn.dataset.kelasId || '';
-              const mulai  = btn.dataset.mulai || '';
-              const selesai= btn.dataset.selesai || '';
-              const ruangan= btn.dataset.ruangan || '';
-
-              // set dropdown
-              el.mapel.value = mapel;
-              await onMapelChange();   // load guruRaw sesuai mapel
-
-              // pilih guru di combobox
-              const g = guruRaw.find(x => x.id === guruId);
-              if (g) {
-                el.guruHidden.value = String(guruId);
-                el.guruInputText.textContent = g.nama;
-                el.giWrap.classList.remove('hidden');
-                el.giNama.textContent = g.nama;
-                el.giMapel.textContent = mapel;
-                el.giLoad.textContent = g.currentLoadHours ?? 0;
-                el.giMax.textContent  = g.maxWeeklyLoad ?? 0;
-              } else {
-                resetGuruInfo();
-              }
-
-              el.kelas.value = kelasId;
-              el.hari.value  = String(hari);
-              el.ruangan.value = ruangan;
-
-              // set slot jam dari mulai–selesai
-              clearSlots();
-              const startIdx = SLOT_DEFS.findIndex(p => p[0] === mulai);
-              const endIdx   = SLOT_DEFS.findIndex(p => p[1] === selesai);
-              const boxes = Array.from(document.querySelectorAll('.slotItem'));
-              boxes.forEach(cb => {
-                const idx = parseInt(cb.dataset.index, 10);
-                if (idx >= startIdx && idx <= endIdx) cb.checked = true;
-              });
-              el.mulai.value = mulai;
-              el.selesai.value = selesai;
-              el.form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              setMsg('Mode edit jadwal. Ubah data lalu klik "Update Jadwal".', true);
-            }
-
-              // data utk kalender
-              window.scheduleData = rows.map(r=>{
-                const guru  = r.guru ?? r.guruNama ?? '-';
-                const mapel = r.mapel ?? '-';
-                const hari  = dayLabel(r.hari);
-                const mulai = (r.mulai ?? '').toString().substring(0,5);
-                const selesai = (r.selesai ?? '').toString().substring(0,5);
-                const kelas = r.kelas ?? r.kelasNama ?? '-';
-                const ruangan = r.ruangan ?? '';
-                return { guru, mapel, hari, mulai, selesai, ruangan: kelas + (ruangan? ' / '+ruangan:'') };
-              });
-
+              window.scheduleData = rows.map(r=>({ guru: r.guru ?? '-', mapel: r.mapel ?? '-', hari: dayLabel(r.hari), mulai: (r.mulai??'').substring(0,5), selesai: (r.selesai??'').substring(0,5), ruangan: (r.kelas??'-') + ((r.ruangan??'')?' / '+r.ruangan:'') }));
               if(!el.viewCalendar.classList.contains('hidden')) renderCalendar();
             }
 
-            // ====== Tabs & Kalender ======
+            async function onDeleteClick(e) {
+              const id = parseInt(e.currentTarget.dataset.id || '0', 10);
+              if (!id || !confirm('Hapus jadwal ini?')) return;
+              const res = await fetch(api.delete(id), { method: 'DELETE' });
+              if (!res.ok && res.status !== 404) { setMsg('Gagal menghapus jadwal.', false); return; }
+              setMsg('jadwal dihapus.', true);
+              await reloadjadwal();
+            }
+
+            async function onEditClick(e) {
+              const btn = e.currentTarget;
+              editingid = parseInt(btn.dataset.id || '0', 10);
+              el.btnSubmit.textContent = 'Update jadwal';
+
+              const mapelName = btn.dataset.mapel || '';
+
+              el.mapel.value = mapelName; // KARENA SEKARANG VALUE = STRING MAPEL
+              await onmapelChange();
+
+              const guruid = parseInt(btn.dataset.guruId || '0', 10);
+              const g = guruRaw.find(x => x.id === guruid);
+              if (g) {
+                el.guruHidden.value = String(guruid);
+                el.guruInputText.textContent = g.nama || '-';
+                el.giWrap.classList.remove('hidden');
+                el.ginama.textContent = g.nama || '-';
+                el.gimapel.textContent = mapelName;
+                el.giLoad.textContent = g.currentLoadHours ?? 0;
+                el.giMax.textContent  = g.maxweeklyload ?? 0;
+              } else {
+                resetguruInfo();
+              }
+
+              el.kelas.value = btn.dataset.kelasId || '';
+              el.hari.value  = String(btn.dataset.hari || '');
+              el.ruangan.value = btn.dataset.ruangan || '';
+
+              clearSlots();
+              const startidx = SLOT_DEFS.findIndex(p => p[0] === btn.dataset.mulai);
+              const endidx   = SLOT_DEFS.findIndex(p => p[1] === btn.dataset.selesai);
+              document.querySelectorAll('.slotItem').forEach(cb => {
+                const idx = parseInt(cb.dataset.index, 10);
+                if (idx >= startidx && idx <= endidx) cb.checked = true;
+              });
+              el.mulai.value = btn.dataset.mulai;
+              el.selesai.value = btn.dataset.selesai;
+              el.form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              setMsg('Mode edit jadwal. Ubah data lalu klik "Update jadwal".', true);
+            }
+
             function setActiveTab(tab){
-              const active = "flex-1 rounded-xl px-4 py-2 text-sm font-medium text-slate-700 bg-white shadow-sm";
-              const inactive = "flex-1 rounded-xl px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700";
+              const act = "flex-1 rounded-xl px-4 py-2 text-sm font-medium text-slate-700 bg-white shadow-sm";
+              const inact = "flex-1 rounded-xl px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700";
               if(tab==='table'){
-                el.tabTable.className=active; el.tabCalendar.className=inactive;
+                el.tabTable.className=act; el.tabCalendar.className=inact;
                 el.viewTable.classList.remove('hidden'); el.viewCalendar.classList.add('hidden');
               } else {
-                el.tabTable.className=inactive; el.tabCalendar.className=active;
+                el.tabTable.className=inact; el.tabCalendar.className=act;
                 el.viewTable.classList.add('hidden'); el.viewCalendar.classList.remove('hidden');
                 renderCalendar();
               }
@@ -726,36 +627,24 @@
               days.forEach(d=>{
                 const col = document.createElement('div');
                 col.className = "shrink-0 w-[85%] sm:w-[60%] md:w-[45%] lg:w-[32%] xl:w-[28%] rounded-2xl border border-slate-200 p-4";
-                const h = document.createElement('h3');
-                h.className = "mb-3 text-lg font-semibold text-slate-900";
-                h.textContent = d; col.appendChild(h);
-
+                col.innerHTML = `<h3 class="mb-3 text-lg font-semibold text-slate-900">${d}</h3>`;
                 const events = (window.scheduleData||[]).filter(x=>x.hari===d);
                 if(events.length===0){
-                  const empty = document.createElement('div');
-                  empty.className="text-slate-400 text-sm"; empty.textContent="Belum ada jadwal";
-                  col.appendChild(empty);
+                  col.innerHTML += `<div class="text-slate-400 text-sm">Belum ada jadwal</div>`;
                 } else {
                   events.forEach(ev=>{
-                    const card = document.createElement('div');
-                    card.className="mb-3 rounded-2xl bg-blue-50 px-4 py-3 text-blue-900 ring-1 ring-blue-100";
-                    card.innerHTML = `
+                    col.innerHTML += `<div class="mb-3 rounded-2xl bg-blue-50 px-4 py-3 text-blue-900 ring-1 ring-blue-100">
                       <div class="text-sm font-semibold">${ev.mulai} - ${ev.selesai}</div>
                       <div class="mt-1 font-semibold">${ev.mapel}</div>
-                      <div class="text-sm text-blue-700">${ev.guru}</div>
-                      <div class="text-sm text-blue-700">${ev.ruangan}</div>`;
-                    col.appendChild(card);
+                      <div class="text-sm text-blue-700">${ev.guru}</div><div class="text-sm text-blue-700">${ev.ruangan}</div></div>`;
                   });
                 }
                 el.daysWrap.appendChild(col);
               });
             }
-
             function scrollCols(dir=1){
-              const first = el.daysWrap.firstElementChild; if(!first) return;
-              const gap = 16, step = first.getBoundingClientRect().width + gap;
-              el.scroller.scrollBy({ left: dir*step, behavior: 'smooth' });
+              const f = el.daysWrap.firstElementChild; if(!f) return;
+              el.scroller.scrollBy({ left: dir*(f.getBoundingClientRect().width+16), behavior: 'smooth' });
             }
         </script>
-    }
-</section>
+}

@@ -8,8 +8,8 @@
     string? curAction = ViewContext.RouteData.Values["action"]?.ToString();
 
     // Helper untuk class menu aktif
-    Func<bool, string> itemClass = (bool isActive) =>
-        isActive
+    Func<bool, string> itemClass = (bool isactive) =>
+        isactive
             ? "nav-link text-primary fw-bold border-bottom border-primary" // Contoh style aktif
             : "nav-link text-dark";
 }

@@ -1,0 +1,41 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build-latihan1",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+         "${workspaceFolder}/Latihan1/Latihan1.csproj",
+         "/property:GenerateFullPaths=true",
+         "/consoleloggerparameters:NoSummary"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "build-latihan2",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+         "${workspaceFolder}/Latihan2/Latihan2.csproj",
+         "/property:GenerateFullPaths=true",
+         "/consoleloggerparameters:NoSummary"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "build-latihan3",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+         "${workspaceFolder}/Latihan3/Latihan3.csproj",
+         "/property:GenerateFullPaths=true",
+         "/consoleloggerparameters:NoSummary"
+      ],
+      "problemMatcher": "$msCompile"
+    }
+  ]
+}

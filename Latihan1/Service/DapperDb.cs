@@ -1,6 +1,6 @@
 ﻿using Dapper;
 using Latihan1.Models;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Data;
@@ -14,7 +14,7 @@ namespace Latihan1.Services
     {
         private readonly string _cs;
         public DapperDb(IConfiguration cfg) => _cs = cfg.GetConnectionString("DefaultConnection")!;
-        private SqlConnection Conn() => new SqlConnection(_cs);
+        private NpgsqlConnection Conn() => new NpgsqlConnection(_cs);
 
         // =======================
         // ======== USERS ========
@@ -24,40 +24,47 @@ namespace Latihan1.Services
         public async Task<UserRow?> GetUserByUsernameAsync(string username)
         {
             const string sql = @"
-SELECT Id, Username, PasswordHash, Role, GuruId
-FROM dbo.Users
-WHERE Username = @username;";
-            using var db = Conn();
+SELECT id, username, passwordhash, role, guruid AS GuruId
+FROM users
+WHERE username = @username;";
+
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.QueryFirstOrDefaultAsync<UserRow>(sql, new { username });
         }
 
         public async Task<int?> GetUserIdByUsernameAsync(string username)
         {
-            const string sql = "SELECT Id FROM dbo.Users WHERE Username = @username;";
-            using var db = Conn();
+            const string sql = "SELECT id FROM users WHERE username = @username;";
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.ExecuteScalarAsync<int?>(sql, new { username });
         }
 
         public async Task<int> CreateUserAsync(string username, string passwordHash, string role, int? guruId)
         {
             const string sql = @"
-INSERT INTO dbo.Users (Username, PasswordHash, Role, GuruId)
-VALUES (@username, @passwordHash, @role, @guruId);";
-            using var db = Conn();
-            return await db.ExecuteAsync(sql, new { username, passwordHash, role, guruId });
+INSERT INTO users (username, passwordhash, role, guruid)
+VALUES (@username, @passwordHash, @role, @guruId)
+RETURNING id;";
+            await using var db = Conn();
+            await db.OpenAsync();
+            return await db.ExecuteScalarAsync<int>(sql, new { username, passwordHash, role, guruId });
         }
 
         public async Task<int> UpdateUserGuruIdAsync(int userId, int? guruId)
         {
-            const string sql = "UPDATE dbo.Users SET GuruId = @guruId WHERE Id = @userId;";
-            using var db = Conn();
-            return await db.ExecuteAsync(sql, new { userId, guruId });
+            const string sql = "UPDATE users SET guruid = @guruId WHERE id = @userId;";
+            await using var db = Conn();
+            await db.OpenAsync();
+            return await db.ExecuteScalarAsync<int>(sql, new { userId, guruId });
         }
 
         public async Task<bool> GuruExistsAsync(int id)
         {
-            const string sql = "SELECT CASE WHEN EXISTS(SELECT 1 FROM dbo.Guru WHERE Id=@id) THEN 1 ELSE 0 END";
-            using var db = Conn();
+            const string sql = "SELECT CASE WHEN EXISTS(SELECT 1 FROM guru WHERE id=@id) THEN 1 ELSE 0 END";
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.ExecuteScalarAsync<int>(sql, new { id }) == 1;
         }
 
@@ -76,14 +83,15 @@ VALUES (@username, @passwordHash, @role, @guruId);";
         public async Task<string> GenerateNextMapelCodeAsync()
         {
             const string sql = @"
-SELECT ISNULL(
-    MAX(TRY_CONVERT(int, SUBSTRING(Kode, 3, 10))),
+SELECT COALESCE(
+    MAX(CAST(SUBSTRING(kode, 3, 10) AS INTEGER)),
     0
 )
-FROM dbo.Mapel
-WHERE Kode LIKE 'MP%';";
+FROM mapel
+WHERE kode LIKE 'MP%';";
 
-            using var db = Conn();
+            await using var db = Conn();
+            await db.OpenAsync();
             var lastNumber = await db.ExecuteScalarAsync<int>(sql);
             var nextNumber = lastNumber + 1;
 
@@ -91,272 +99,264 @@ WHERE Kode LIKE 'MP%';";
         }
 
 
-        public async Task<IEnumerable<MapelModel>> GetAllMapelAsync()
+        public async Task<IEnumerable<mapelModel>> GetAllMapelAsync()
         {
-            const string sql = "SELECT Id, Kode, Nama FROM dbo.Mapel ORDER BY Nama;";
-            using var db = Conn();
-            return await db.QueryAsync<MapelModel>(sql);
+            const string sql = "SELECT id, kode, nama FROM mapel ORDER BY nama;";
+            await using var db = Conn();
+            await db.OpenAsync();
+            return await db.QueryAsync<mapelModel>(sql);
         }
 
-        public async Task<MapelModel?> GetMapelByIdAsync(int id)
+        public async Task<mapelModel?> GetMapelByIdAsync(int id)
         {
-            const string sql = "SELECT Id, Kode, Nama FROM dbo.Mapel WHERE Id=@id;";
-            using var db = Conn();
-            return await db.QueryFirstOrDefaultAsync<MapelModel>(sql, new { id });
+            const string sql = "SELECT id, kode, nama FROM mapel WHERE id=@id;";
+            await using var db = Conn();
+            await db.OpenAsync();
+            return await db.QueryFirstOrDefaultAsync<mapelModel>(sql, new { id });
         }
 
-        public async Task<int> CreateMapelAsync(MapelModel m)
+        public async Task<int> CreateMapelAsync(mapelModel m)
         {
             const string sql = @"
-INSERT INTO dbo.Mapel (Kode, Nama) VALUES (@Kode, @Nama);
-SELECT CAST(SCOPE_IDENTITY() AS INT);";
-            using var db = Conn();
+INSERT INTO mapel (kode, nama) VALUES (@Kode, @Nama) RETURNING id;";
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.ExecuteScalarAsync<int>(sql, m);
         }
 
-        public async Task<int> UpdateMapelAsync(MapelModel m)
+        public async Task<int> UpdateMapelAsync(mapelModel m)
         {
-            const string sql = "UPDATE dbo.Mapel SET Kode=@Kode, Nama=@Nama WHERE Id=@Id;";
-            using var db = Conn();
-            return await db.ExecuteAsync(sql, m);
+            const string sql = "UPDATE mapel SET kode=@Kode, nama=@Nama WHERE id=@Id;";
+            await using var db = Conn();
+            await db.OpenAsync();
+            return await db.ExecuteScalarAsync<int>(sql, m);
         }
 
         public async Task<int> DeleteMapelAsync(int id)
         {
-            const string sql = "DELETE FROM dbo.Mapel WHERE Id=@id;";
-            using var db = Conn();
-            return await db.ExecuteAsync(sql, new { id });
+            const string sql = "DELETE FROM mapel WHERE id=@id;";
+            await using var db = Conn();
+            await db.OpenAsync();
+            return await db.ExecuteScalarAsync<int>(sql, new { id });
         }
 
 
         // =======================
         // ========= GURU ========
         // =======================
-        public async Task<GuruModel?> GetGuruByIdAsync(int id)
+        public async Task<guruModel?> GetGuruByIdAsync(int id)
         {
             const string sql = @"
 SELECT 
-    g.Id,
-    g.Nama,
-    ISNULL(g.NIP,'') AS NIP,
-    g.Email,
-    -- Menghitung total jam dari tabel Jadwal (durasi / 60)
-    ISNULL((
-        SELECT SUM(DATEDIFF(MINUTE, j.Mulai, j.Selesai)) / 60
-        FROM dbo.Jadwal j 
-        WHERE j.GuruId = g.Id
-    ), 0) AS JamMengajar, 
-    ISNULL(g.IsActive, 1) AS IsActive,
-    ISNULL(g.MaxWeeklyLoad, 24) AS MaxWeeklyLoad,
-    ISNULL(g.MaxDailyLoad, 6) AS MaxDailyLoad,
-    -- MaxConsecutiveSlots dihapus dari SELECT karena tidak digunakan lagi
-    g.MapelId,
-    g.QRCodeBase64,
-    m.Nama AS MapelNama,
-    g.CreatedAt
-FROM dbo.Guru g
-JOIN dbo.Mapel m ON m.Id = g.MapelId
-WHERE g.Id = @id;";
+    g.id,
+    g.nama,
+    COALESCE(g.nip,'') AS nip,
+    g.email,
+    COALESCE((
+        SELECT SUM(EXTRACT(EPOCH FROM (j.selesai - j.mulai)) / 60) / 60
+        FROM jadwal j 
+        WHERE j.guruid = g.id
+    ), 0) AS jammengajar, 
+    COALESCE(g.isactive, true) AS isactive,
+    COALESCE(g.maxweeklyload, 24) AS maxweeklyload,
+    COALESCE(g.maxdailyload, 6) AS maxdailyload,
+    g.mapelid,
+    g.qrcodebase64,
+    m.nama AS mapelnama,
+    g.createdat
+FROM guru g
+JOIN mapel m ON m.id = g.mapelid
+WHERE g.id = @id;";
 
-            using var db = Conn();
-            return await db.QueryFirstOrDefaultAsync<GuruModel>(sql, new { id });
+            await using var db = Conn();
+            await db.OpenAsync();
+            return await db.QueryFirstOrDefaultAsync<guruModel>(sql, new { id });
         }
 
         public async Task<bool> GuruHasJadwalAsync(int guruId)
         {
             const string sql = @"
 SELECT CASE WHEN EXISTS(
-    SELECT 1 FROM dbo.Jadwal WHERE GuruId = @guruId
+    SELECT 1 FROM jadwal WHERE guruid = @guruId
 ) THEN 1 ELSE 0 END;";
-            using var db = Conn();
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.ExecuteScalarAsync<int>(sql, new { guruId }) == 1;
         }
 
-        public Task<GuruModel?> GetGuruForEditAsync(int id) => GetGuruByIdAsync(id);
+        public Task<guruModel?> GetGuruForEditAsync(int id) => GetGuruByIdAsync(id);
 
-        public async Task<IEnumerable<GuruModel>> SearchGuruAsync(string? q)
+        public async Task<IEnumerable<guruModel>> SearchGuruAsync(string? q)
         {
-            // Update: Menambahkan g.QRCodeBase64
             const string sql = @"
 SELECT 
-    g.Id,
-    g.Nama,
-    ISNULL(g.NIP,'') AS NIP,
-    g.Email,
-    ISNULL(g.JamMengajar,0) AS JamMengajar,
-    ISNULL(g.IsActive,1)    AS IsActive,
-    ISNULL(g.MaxWeeklyLoad,24)      AS MaxWeeklyLoad,
-    ISNULL(g.MaxDailyLoad,6)        AS MaxDailyLoad,
-    ISNULL(g.MaxConsecutiveSlots,3) AS MaxConsecutiveSlots,
-    g.MapelId,
-    g.QRCodeBase64,
-    STRING_AGG(m.Nama, ', ') WITHIN GROUP (ORDER BY m.Nama) AS MapelNama,
-    g.CreatedAt
-FROM dbo.Guru g
-LEFT JOIN dbo.GuruMapel gm ON gm.GuruId = g.Id
-LEFT JOIN dbo.Mapel     m  ON m.Id      = gm.MapelId
+    g.id,
+    g.nama,
+    COALESCE(g.nip,'') AS nip,
+    g.email,
+    COALESCE(g.jammengajar,0) AS jammengajar,
+    COALESCE(g.isactive,true)    AS isactive,
+    COALESCE(g.maxweeklyload,24)      AS maxweeklyload,
+    COALESCE(g.maxdailyload,6)        AS maxdailyload,
+    COALESCE(g.maxconsecutiveslots,3) AS maxconsecutiveslots,
+    g.mapelid,
+    g.qrcodebase64,
+    STRING_AGG(m.nama, ', ' ORDER BY m.nama) AS mapelnama,
+    g.createdat
+FROM guru g
+LEFT JOIN gurumapel gm ON gm.guruid = g.id
+LEFT JOIN mapel     m  ON m.id      = gm.mapelid
 WHERE (@q IS NULL OR @q = '')
-   OR (g.Nama  LIKE '%'+@q+'%'
-    OR g.NIP   LIKE '%'+@q+'%'
-    OR m.Nama  LIKE '%'+@q+'%'
-    OR g.Email LIKE '%'+@q+'%')
+   OR (g.nama ILIKE '%' || @q || '%'
+    OR g.nip   ILIKE '%' || @q || '%'
+    OR m.nama  ILIKE '%' || @q || '%'
+    OR g.email ILIKE '%' || @q || '%')
 GROUP BY
-    g.Id,
-    g.Nama,
-    g.NIP,
-    g.Email,
-    g.JamMengajar,
-    g.IsActive,
-    g.MaxWeeklyLoad,
-    g.MaxDailyLoad,
-    g.MaxConsecutiveSlots,
-    g.MapelId,
-    g.QRCodeBase64,
-    g.CreatedAt
-ORDER BY g.Nama;";
-            using var db = Conn();
-            return await db.QueryAsync<GuruModel>(sql, new { q });
+    g.id,
+    g.nama,
+    g.nip,
+    g.email,
+    g.jammengajar,
+    g.isactive,
+    g.maxweeklyload,
+    g.maxdailyload,
+    g.maxconsecutiveslots,
+    g.mapelid,
+    g.qrcodebase64,
+    g.createdat
+ORDER BY g.nama;";
+            await using var db = Conn();
+            await db.OpenAsync();
+            return await db.QueryAsync<guruModel>(sql, new { q });
         }
 
-        public async Task<(IEnumerable<GuruModel> Items, int Total)> SearchGuruPagedAsync(string? q, int page, int pageSize)
+        public async Task<(IEnumerable<guruModel> Items, int Total)> SearchGuruPagedAsync(string? q, int page, int pageSize)
         {
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 10;
             int skip = (page - 1) * pageSize;
 
             const string countSql = @"
-SELECT COUNT(DISTINCT g.Id)
-FROM dbo.Guru g
-LEFT JOIN dbo.GuruMapel gm ON gm.GuruId = g.Id
-LEFT JOIN dbo.Mapel     m  ON m.Id      = gm.MapelId
+SELECT COUNT(DISTINCT g.id)
+FROM guru g
+LEFT JOIN gurumapel gm ON gm.guruid = g.id
+LEFT JOIN mapel     m  ON m.id      = gm.mapelid
 WHERE (@q IS NULL OR @q = '')
-   OR (g.Nama  LIKE '%'+@q+'%'
-    OR g.NIP   LIKE '%'+@q+'%'
-    OR m.Nama  LIKE '%'+@q+'%'
-    OR g.Email LIKE '%'+@q+'%');";
+   OR (g.nama  ILIKE '%' || @q || '%'
+    OR g.nip   ILIKE '%' || @q || '%'
+    OR m.nama  ILIKE '%' || @q || '%'
+    OR g.email ILIKE '%' || @q || '%');";
 
-            // Update: Menambahkan g.QRCodeBase64 dan GROUP BY g.QRCodeBase64
             const string dataSql = @"
 SELECT 
-    g.Id,
-    g.Nama,
-    ISNULL(g.NIP,'') AS NIP,
-    g.Email,
-    -- HITUNG TOTAL JAM DARI TABEL JADWAL --
-    ISNULL((
-        SELECT SUM(DATEDIFF(MINUTE, j.Mulai, j.Selesai)) / 60
-        FROM dbo.Jadwal j 
-        WHERE j.GuruId = g.Id
-    ), 0) AS JamMengajar, 
-    ISNULL(g.IsActive,1)    AS IsActive,
-    ISNULL(g.MaxWeeklyLoad,24)      AS MaxWeeklyLoad,
-    ISNULL(g.MaxDailyLoad,6)        AS MaxDailyLoad,
-    ISNULL(g.MaxConsecutiveSlots,3) AS MaxConsecutiveSlots,
-    g.MapelId,
-    g.QRCodeBase64,
-    STRING_AGG(m.Nama, ', ') WITHIN GROUP (ORDER BY m.Nama) AS MapelNama,
-    g.CreatedAt
-FROM dbo.Guru g
-LEFT JOIN dbo.GuruMapel gm ON gm.GuruId = g.Id
-LEFT JOIN dbo.Mapel      m  ON m.Id      = gm.MapelId
+    g.id,
+    g.nama,
+    COALESCE(g.nip,'') AS nip,
+    g.email,
+    COALESCE((
+        SELECT SUM(EXTRACT(EPOCH FROM (j.selesai - j.mulai)) / 60) / 60
+        FROM jadwal j 
+        WHERE j.guruid = g.id
+    ), 0) AS jammengajar, 
+    COALESCE(g.isactive,true)    AS isactive,
+    COALESCE(g.maxweeklyload,24)      AS maxweeklyload,
+    COALESCE(g.maxdailyload,6)        AS maxdailyload,
+    COALESCE(g.maxconsecutiveslots,3) AS maxconsecutiveslots,
+    g.mapelid,
+    g.qrcodebase64,
+    STRING_AGG(m.nama, ', ' ORDER BY m.nama) AS mapelnama,
+    g.createdat
+FROM guru g
+LEFT JOIN gurumapel gm ON gm.guruid = g.id
+LEFT JOIN mapel      m  ON m.id      = gm.mapelid
 WHERE (@q IS NULL OR @q = '')
-   OR (g.Nama  LIKE '%'+@q+'%'
-    OR g.NIP   LIKE '%'+@q+'%'
-    OR m.Nama  LIKE '%'+@q+'%'
-    OR g.Email LIKE '%'+@q+'%')
+   OR (g.nama  ILIKE '%' || @q || '%'
+    OR g.nip   ILIKE '%' || @q || '%'
+    OR m.nama  ILIKE '%' || @q || '%'
+    OR g.email ILIKE '%' || @q || '%')
 GROUP BY
-    g.Id, g.Nama, g.NIP, g.Email, g.IsActive, g.MaxWeeklyLoad, 
-    g.MaxDailyLoad, g.MaxConsecutiveSlots, g.MapelId, g.QRCodeBase64, g.CreatedAt
-ORDER BY g.Nama
+    g.id, g.nama, g.nip, g.email, g.isactive, g.maxweeklyload, 
+    g.maxdailyload, g.maxconsecutiveslots, g.mapelid, g.qrcodebase64, g.createdat
+ORDER BY g.nama
 OFFSET @skip ROWS FETCH NEXT @take ROWS ONLY;";
 
-            using var db = Conn();
+            await using var db = Conn();
+            await db.OpenAsync();
             var total = await db.ExecuteScalarAsync<int>(countSql, new { q });
-            var items = await db.QueryAsync<GuruModel>(dataSql, new { q, skip, take = pageSize });
+            var items = await db.QueryAsync<guruModel>(dataSql, new { q, skip, take = pageSize });
             return (items, total);
         }
 
-        public async Task<int> CreateGuruAsync(GuruModel m)
+        public async Task<int> CreateGuruAsync(guruModel m)
         {
-            // Update: Menambahkan QRCodeBase64 ke Insert
             const string sql = @"
-INSERT INTO dbo.Guru
-    (Nama, NIP, Email, JamMengajar, IsActive,
-     MaxWeeklyLoad, MaxDailyLoad, MaxConsecutiveSlots, MapelId, QRCodeBase64, CreatedAt)
+INSERT INTO guru
+    (nama, nip, email, jammengajar, isactive,
+     maxweeklyload, maxdailyload, maxconsecutiveslots, mapelid, qrcodebase64, createdat)
 VALUES
-    (@Nama, @NIP, @Email, @JamMengajar, @IsActive,
-     @MaxWeeklyLoad, @MaxDailyLoad, @MaxConsecutiveSlots, @MapelId, @QRCodeBase64, GETDATE());
-SELECT CAST(SCOPE_IDENTITY() AS INT);";
-            using var db = Conn();
+    (@Nama, @nip, @Email, @JamMengajar, @IsActive,
+     @MaxWeeklyLoad, @MaxDailyLoad, @MaxConsecutiveSlots, @MapelId, @qrcodebase64, CURRENT_TIMESTAMP)
+RETURNING id;";
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.ExecuteScalarAsync<int>(sql, m);
         }
 
-        public async Task<int> UpdateGuruAsync(GuruModel m)
+        public async Task<int> UpdateGuruAsync(guruModel m)
         {
-            // Update: Menambahkan QRCodeBase64 ke Update
             const string sql = @"
-UPDATE dbo.Guru
-SET Nama=@Nama,
-    NIP=@NIP,
-    Email=@Email,
-    IsActive=@IsActive,
-    MaxWeeklyLoad=@MaxWeeklyLoad,
-    MaxDailyLoad=@MaxDailyLoad,
-    MapelId=@MapelId,
-    QRCodeBase64=@QRCodeBase64
-WHERE Id=@Id;";
-            using var db = Conn();
-            return await db.ExecuteAsync(sql, m);
+UPDATE guru
+SET nama=@Nama,
+    nip=@nip,
+    email=@Email,
+    isactive=@IsActive,
+    maxweeklyload=@MaxWeeklyLoad,
+    maxdailyload=@MaxDailyLoad,
+    mapelid=@MapelId,
+    qrcodebase64=@qrcodebase64
+WHERE id=@Id;";
+            await using var db = Conn();
+            await db.OpenAsync();
+            return await db.ExecuteScalarAsync<int>(sql, m);
         }
 
         public async Task<int> DeleteGuruAsync(int id)
         {
-            const string sql = "DELETE FROM dbo.Guru WHERE Id=@id;";
-            using var db = Conn();
-            return await db.ExecuteAsync(sql, new { id });
+            const string sql = "DELETE FROM guru WHERE id=@id;";
+            await using var db = Conn();
+            await db.OpenAsync();
+            return await db.ExecuteScalarAsync<int>(sql, new { id });
         }
 
         public async Task<int> DeleteGuruAndDetachUsersAsync(int id, bool deleteUsers = true)
         {
-            using var db = Conn(); // Asumsi Conn() mengembalikan SqlConnection baru
+            await using var db = Conn();
             await db.OpenAsync();
 
-            // Mulai Transaksi
-            using var tx = await db.BeginTransactionAsync();
+            // Gabungkan semua perintah ke dalam SATU string query.
+            // PostgreSQL akan otomatis mengeksekusi ini sebagai satu transaksi penuh (All-or-Nothing).
+            // Ini mem-bypass total penggunaan NpgsqlTransaction yang menyebabkan crash.
+            string sql;
 
-            try
+            if (deleteUsers)
             {
-                // 1. HAPUS RELASI MAPEL TERLEBIH DAHULU (Di dalam transaksi)
-                // Pastikan nama tabel relasi Anda benar (misal: GuruMapel) dan kolomnya (GuruId)
-                const string delMapel = "DELETE FROM dbo.GuruMapel WHERE GuruId = @id;";
-                await db.ExecuteAsync(delMapel, new { id }, transaction: (IDbTransaction)tx);
-
-                // 2. PROSES USER (Hapus atau Set Null)
-                if (deleteUsers)
-                {
-                    const string delUsers = "DELETE FROM dbo.Users WHERE GuruId = @id;";
-                    await db.ExecuteAsync(delUsers, new { id }, transaction: (IDbTransaction)tx);
-                }
-                else
-                {
-                    const string nullUsers = "UPDATE dbo.Users SET GuruId = NULL WHERE GuruId = @id;";
-                    await db.ExecuteAsync(nullUsers, new { id }, transaction: (IDbTransaction)tx);
-                }
-
-                // 3. HAPUS GURU
-                const string delGuru = "DELETE FROM dbo.Guru WHERE Id = @id;";
-                var affected = await db.ExecuteAsync(delGuru, new { id }, transaction: (IDbTransaction)tx);
-
-                // Jika sampai sini tidak ada error, Commit semua perubahan
-                await tx.CommitAsync();
-                return affected;
+                sql = @"
+            DELETE FROM gurumapel WHERE guruid = @id;
+            DELETE FROM users WHERE guruid = @id;
+            DELETE FROM guru WHERE id = @id;
+        ";
             }
-            catch
+            else
             {
-                // Jika ada error di langkah manapun, batalkan SEMUANYA (termasuk hapus mapel)
-                await tx.RollbackAsync();
-                throw; // Lempar error ke Controller
+                sql = @"
+            DELETE FROM gurumapel WHERE guruid = @id;
+            UPDATE users SET guruid = NULL WHERE guruid = @id;
+            DELETE FROM guru WHERE id = @id;
+        ";
             }
+
+            // Eksekusi semua sekaligus dalam satu round-trip ke database
+            return await db.ExecuteAsync(sql, new { id });
         }
 
         // =======================================
@@ -365,46 +365,40 @@ WHERE Id=@Id;";
 
         public async Task<IEnumerable<int>> GetMapelIdsForGuruAsync(int guruId)
         {
-            const string sql = @"SELECT MapelId FROM dbo.GuruMapel WHERE GuruId = @guruId;";
-            using var db = Conn();
+            const string sql = @"SELECT mapelid FROM gurumapel WHERE guruid = @guruId;";
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.QueryAsync<int>(sql, new { guruId });
         }
 
         public async Task SaveGuruMapelAsync(int guruId, int[] mapelIds)
         {
-            using var db = Conn();
+            await using var db = Conn();
             await db.OpenAsync();
-            using var tx = await db.BeginTransactionAsync();
 
-            try
+            // Eksekusi DELETE sepenuhnya dan tunggu sampai benar-benar selesai
+            const string delSql = "DELETE FROM gurumapel WHERE guruid = @guruId;";
+            await db.ExecuteAsync(delSql, new { guruId });
+
+            // Jika tidak ada mapel yang dipilih, proses berhenti di sini
+            if (mapelIds == null || mapelIds.Length == 0) return;
+
+            // Eksekusi INSERT satu per satu dengan pelindung ON CONFLICT DO NOTHING
+            const string insSql = "INSERT INTO gurumapel (guruid, mapelid) VALUES (@guruId, @mapelId) ON CONFLICT DO NOTHING;";
+            var uniqueMapelIds = mapelIds.Distinct().ToList();
+
+            foreach (var mid in uniqueMapelIds)
             {
-                const string delSql = @"DELETE FROM dbo.GuruMapel WHERE GuruId = @guruId;";
-                await db.ExecuteAsync(delSql, new { guruId }, transaction: (IDbTransaction)tx);
-
-                if (mapelIds != null && mapelIds.Length > 0)
-                {
-                    const string insSql = @"INSERT INTO dbo.GuruMapel (GuruId, MapelId) VALUES (@GuruId, @MapelId);";
-
-                    var param = mapelIds
-                        .Distinct()
-                        .Select(mid => new { GuruId = guruId, MapelId = mid });
-
-                    await db.ExecuteAsync(insSql, param, transaction: (IDbTransaction)tx);
-                }
-
-                await tx.CommitAsync();
-            }
-            catch
-            {
-                await tx.RollbackAsync();
-                throw;
+                await db.ExecuteAsync(insSql, new { guruId = guruId, mapelId = mid });
             }
         }
 
         public async Task<int> DeleteGuruMapelAsync(int guruId)
         {
-            const string sql = @"DELETE FROM dbo.GuruMapel WHERE GuruId = @guruId;";
-            using var db = Conn();
+            const string sql = @"DELETE FROM gurumapel WHERE guruid = @guruId;";
+            await using var db = Conn();
+            await db.OpenAsync();
+            // Gunakan ExecuteAsync (bukan ExecuteScalarAsync) untuk perintah DELETE
             return await db.ExecuteAsync(sql, new { guruId });
         }
 
@@ -416,72 +410,74 @@ WHERE Id=@Id;";
         public async Task<IEnumerable<SubjectCountRow>> GetSubjectsWithCountsAsync()
         {
             const string sql = @"
-SELECT m.Id AS MapelId, m.Nama AS Mapel, COUNT(*) AS [Count]
-FROM dbo.Guru g
-JOIN dbo.Mapel m ON m.Id = g.MapelId
-GROUP BY m.Id, m.Nama
-ORDER BY m.Nama;";
-            using var db = Conn();
+SELECT m.id AS MapelId, m.nama AS Mapel, CAST(COUNT(*) AS int) AS ""Count""
+FROM guru g
+JOIN mapel m ON m.id = g.mapelid
+GROUP BY m.id, m.nama
+ORDER BY m.nama;";
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.QueryAsync<SubjectCountRow>(sql);
         }
 
         public async Task<IEnumerable<string>> GetDistinctMapelAsync()
         {
-            const string sql = @"SELECT Nama FROM dbo.Mapel ORDER BY Nama;";
-            using var db = Conn();
+            const string sql = @"SELECT nama FROM mapel ORDER BY nama;";
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.QueryAsync<string>(sql);
         }
 
-        public async Task<IEnumerable<GuruModel>> GetTeachersBySubjectIdAsync(int mapelId)
+        public async Task<IEnumerable<guruModel>> GetTeachersBySubjectIdAsync(int mapelId)
         {
-            // Update: Menambahkan QRCodeBase64
             const string sql = @"
 SELECT 
-    g.Id,
-    g.Nama,
-    ISNULL(g.NIP,'') AS NIP,
-    g.Email,
-    ISNULL(g.JamMengajar,0) AS JamMengajar,
-    ISNULL(g.IsActive,1)    AS IsActive,
-    ISNULL(g.MaxWeeklyLoad,24)      AS MaxWeeklyLoad,
-    ISNULL(g.MaxDailyLoad,6)        AS MaxDailyLoad,
-    ISNULL(g.MaxConsecutiveSlots,3) AS MaxConsecutiveSlots,
-    g.MapelId,
-    g.QRCodeBase64,
-    m.Nama AS MapelNama,
-    g.CreatedAt
-FROM dbo.Guru g
-JOIN dbo.Mapel m ON m.Id = g.MapelId
-WHERE g.MapelId = @mapelId
-ORDER BY g.Nama;";
-            using var db = Conn();
-            return await db.QueryAsync<GuruModel>(sql, new { mapelId });
+    g.id,
+    g.nama,
+    COALESCE(g.nip,'') AS nip,
+    g.email,
+    COALESCE(g.jammengajar,0) AS jammengajar,
+    COALESCE(g.isactive,true)    AS isactive,
+    COALESCE(g.maxweeklyload,24)      AS maxweeklyload,
+    COALESCE(g.maxdailyload,6)        AS maxdailyload,
+    COALESCE(g.maxconsecutiveslots,3) AS maxconsecutiveslots,
+    g.mapelid,
+    g.qrcodebase64,
+    m.nama AS mapelnama,
+    g.createdat
+FROM guru g
+JOIN mapel m ON m.id = g.mapelid
+WHERE g.mapelid = @mapelId
+ORDER BY g.nama;";
+            await using var db = Conn();
+            await db.OpenAsync();
+            return await db.QueryAsync<guruModel>(sql, new { mapelId });
         }
 
-        public async Task<IEnumerable<GuruModel>> GetTeachersBySubjectAsync(string mapelNama)
+        public async Task<IEnumerable<guruModel>> GetTeachersBySubjectAsync(string mapelNama)
         {
-            // Update: Menambahkan QRCodeBase64
             const string sql = @"
 SELECT 
-    g.Id,
-    g.Nama,
-    ISNULL(g.NIP,'') AS NIP,
-    g.Email,
-    ISNULL(g.JamMengajar,0) AS JamMengajar,
-    ISNULL(g.IsActive,1)    AS IsActive,
-    ISNULL(g.MaxWeeklyLoad,24)      AS MaxWeeklyLoad,
-    ISNULL(g.MaxDailyLoad,6)        AS MaxDailyLoad,
-    ISNULL(g.MaxConsecutiveSlots,3) AS MaxConsecutiveSlots,
-    g.MapelId,
-    g.QRCodeBase64,
-    m.Nama AS MapelNama,
-    g.CreatedAt
-FROM dbo.Guru g
-JOIN dbo.Mapel m ON m.Id = g.MapelId
-WHERE m.Nama = @mapelNama
-ORDER BY g.Nama;";
-            using var db = Conn();
-            return await db.QueryAsync<GuruModel>(sql, new { mapelNama });
+    g.id,
+    g.nama,
+    COALESCE(g.nip,'') AS nip,
+    g.email,
+    COALESCE(g.jammengajar,0) AS jammengajar,
+    COALESCE(g.isactive,true)    AS isactive,
+    COALESCE(g.maxweeklyload,24)      AS maxweeklyload,
+    COALESCE(g.maxdailyload,6)        AS maxdailyload,
+    COALESCE(g.maxconsecutiveslots,3) AS maxconsecutiveslots,
+    g.mapelid,
+    g.qrcodebase64,
+    m.nama AS mapelnama,
+    g.createdat
+FROM guru g
+JOIN mapel m ON m.id = g.mapelid
+WHERE m.nama = @mapelNama
+ORDER BY g.nama;";
+            await using var db = Conn();
+            await db.OpenAsync();
+            return await db.QueryAsync<guruModel>(sql, new { mapelNama });
         }
 
         // =======================
@@ -492,61 +488,70 @@ ORDER BY g.Nama;";
         public async Task<IEnumerable<string>> GetAllGradesAsync()
         {
             const string sql = @"
-SELECT DISTINCT Tingkat
-FROM dbo.Kelas
-WHERE IsActive = 1
-ORDER BY Tingkat;";
-            using var db = Conn();
+SELECT DISTINCT tingkat
+FROM kelas
+WHERE isactive = true
+ORDER BY tingkat;";
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.QueryAsync<string>(sql);
         }
 
         public async Task<IEnumerable<KelasRow>> GetKelasByGradeAsync(string tingkat)
         {
             const string sql = @"
-SELECT Id, Tingkat, Nama, ISNULL(IsActive,1) AS IsActive, CreatedAt
-FROM dbo.Kelas
-WHERE Tingkat = @tingkat
-ORDER BY Nama;";
-            using var db = Conn();
+SELECT id, tingkat, nama, COALESCE(isactive, true) AS isactive, createdat
+FROM kelas
+WHERE tingkat = @tingkat
+ORDER BY nama;";
+
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.QueryAsync<KelasRow>(sql, new { tingkat });
         }
 
         public async Task<int> InsertKelasAsync(string tingkat, string nama, bool isActive = true)
         {
             const string sql = @"
-INSERT INTO dbo.Kelas (Tingkat, Nama, IsActive, CreatedAt)
-VALUES (@tingkat, @nama, @isActive, SYSDATETIME());
-SELECT CAST(SCOPE_IDENTITY() AS int);";
-            using var db = Conn();
+INSERT INTO kelas (tingkat, nama, isactive, createdat)
+VALUES (@tingkat, @nama, @isActive, CURRENT_TIMESTAMP)
+RETURNING id;";
+
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.ExecuteScalarAsync<int>(sql, new { tingkat, nama, isActive });
         }
 
         public async Task<int> UpdateKelasAsync(int id, string tingkat, string nama, bool isActive)
         {
             const string sql = @"
-UPDATE dbo.Kelas
-SET Tingkat = @tingkat,
-    Nama    = @nama,
-    IsActive = @isActive
-WHERE Id = @id;";
-            using var db = Conn();
-            return await db.ExecuteAsync(sql, new { id, tingkat, nama, isActive });
+UPDATE kelas
+SET tingkat = @tingkat,
+    nama    = @nama,
+    isactive = @isActive
+WHERE id = @id;";
+            await using var db = Conn();
+            await db.OpenAsync();
+            return await db.ExecuteScalarAsync<int>(sql, new { id, tingkat, nama, isActive });
         }
 
         public async Task<int> DeleteKelasAsync(int id)
         {
-            const string sql = @"DELETE FROM dbo.Kelas WHERE Id = @id;";
-            using var db = Conn();
-            return await db.ExecuteAsync(sql, new { id });
+            const string sql = @"DELETE FROM kelas WHERE id = @id;";
+            await using var db = Conn();
+            await db.OpenAsync();
+            return await db.ExecuteScalarAsync<int>(sql, new { id });
         }
 
         public async Task<IEnumerable<KelasRow>> GetKelasListAsync()
         {
             const string sql = @"
-SELECT Id, Tingkat, Nama, ISNULL(IsActive,1) AS IsActive, CreatedAt
-FROM dbo.Kelas
-ORDER BY Tingkat, Nama;";
-            using var db = Conn();
+SELECT id, tingkat, nama, COALESCE(isactive, true) AS isactive, createdat
+FROM kelas
+ORDER BY tingkat, nama;";
+
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.QueryAsync<KelasRow>(sql);
         }
 
@@ -554,11 +559,12 @@ ORDER BY Tingkat, Nama;";
         public async Task<IEnumerable<KelasGroupRow>> GetKelasGroupsAsync()
         {
             const string sql = @"
-SELECT Tingkat, COUNT(*) AS [Count]
-FROM dbo.Kelas
-GROUP BY Tingkat
-ORDER BY Tingkat;";
-            using var db = Conn();
+SELECT tingkat, CAST(COUNT(*) AS int) AS ""Count""
+FROM kelas
+GROUP BY tingkat
+ORDER BY tingkat;";
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.QueryAsync<KelasGroupRow>(sql);
         }
 
@@ -568,18 +574,20 @@ ORDER BY Tingkat;";
         public async Task<KelasRow?> GetKelasByIdAsync(int id)
         {
             const string sql = @"
-SELECT Id, Tingkat, Nama, ISNULL(IsActive,1) AS IsActive, CreatedAt
-FROM dbo.Kelas
-WHERE Id = @id;";
-            using var db = Conn();
+SELECT id, tingkat, nama, COALESCE(isactive, true) AS isactive, createdat
+FROM kelas
+WHERE id = @id;";
+
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.QueryFirstOrDefaultAsync<KelasRow>(sql, new { id });
         }
 
-        public Task<int> CreateKelasAsync(KelasModel m)
-            => InsertKelasAsync(m.Tingkat!, m.Nama!, m.IsActive);
+        public Task<int> CreateKelasAsync(kelasModel m)
+            => InsertKelasAsync(m.tingkat!, m.nama!, m.isactive);
 
-        public Task<int> UpdateKelasAsync(KelasModel m)
-            => UpdateKelasAsync(m.Id, m.Tingkat!, m.Nama!, m.IsActive);
+        public Task<int> UpdateKelasAsync(kelasModel m)
+            => UpdateKelasAsync(m.id, m.tingkat!, m.nama!, m.isactive);
 
         public async Task<int> UpdateKelasAsync(int id, string nama, bool isActive)
         {
@@ -589,8 +597,9 @@ WHERE Id = @id;";
 
         private async Task<string> GetKelasTingkatAsyncInternal(int id)
         {
-            const string sql = "SELECT TOP(1) Tingkat FROM dbo.Kelas WHERE Id=@id;";
-            using var db = Conn();
+            const string sql = "SELECT tingkat FROM kelas WHERE id=@id LIMIT 1;";
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.ExecuteScalarAsync<string>(sql, new { id }) ?? "X";
         }
 
@@ -603,13 +612,12 @@ WHERE Id = @id;";
         // ==========================
         // ========= JADWAL =========
         // ==========================
-        // POCO untuk Dapper
         public class JadwalRow
         {
             public int Id { get; set; }
             public int GuruId { get; set; }
             public string GuruNama { get; set; } = "";
-            public string Mapel { get; set; } = "";  // dari tabel Jadwal (string)
+            public string Mapel { get; set; } = "";
             public int Hari { get; set; }
             public TimeSpan Mulai { get; set; }
             public TimeSpan Selesai { get; set; }
@@ -639,15 +647,16 @@ WHERE Id = @id;";
         {
             const string sql = @"
 SELECT 1
-FROM dbo.Jadwal j
-WHERE j.GuruId = @GuruId
-  AND j.Hari   = @Hari
-  AND (@Mulai  < j.Selesai AND @Selesai > j.Mulai)
-  AND (@ExcludeId IS NULL OR j.Id <> @ExcludeId);";
+FROM jadwal j
+WHERE j.guruid = @guruId
+  AND j.hari   = @hari
+  AND (@mulai  < j.selesai AND @selesai > j.mulai)
+  AND (@excludeId IS NULL OR j.id <> @excludeId);";
 
-            using var db = Conn();
+            await using var db = Conn();
+            await db.OpenAsync();
             var exists = await db.ExecuteScalarAsync<int?>(
-                sql, new { GuruId = guruId, Hari = hari, Mulai = mulai, Selesai = selesai, ExcludeId = excludeId });
+                sql, new { guruId, hari, mulai, selesai, excludeId });
 
             return exists.HasValue;
         }
@@ -656,87 +665,92 @@ WHERE j.GuruId = @GuruId
             int guruId, string mapel, int hari, TimeSpan mulai, TimeSpan selesai, int kelasId, string? ruangan)
         {
             const string sql = @"
-INSERT INTO dbo.Jadwal (GuruId, Mapel, Hari, Mulai, Selesai, KelasId, Ruangan)
-VALUES (@GuruId, @Mapel, @Hari, @Mulai, @Selesai, @KelasId, @Ruangan);
-SELECT CAST(SCOPE_IDENTITY() AS int);";
+INSERT INTO jadwal (guruid, mapel, hari, mulai, selesai, kelasid, ruangan)
+VALUES (@guruId, @mapel, @hari, @mulai, @selesai, @kelasId, @ruangan)
+RETURNING id;";
 
-            using var db = Conn();
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.ExecuteScalarAsync<int>(sql, new
             {
-                GuruId = guruId,
-                Mapel = mapel, // tetap string di tabel Jadwal
-                Hari = hari,
-                Mulai = mulai,
-                Selesai = selesai,
-                KelasId = kelasId,
-                Ruangan = ruangan
+                guruId,
+                mapel,
+                hari,
+                mulai,
+                selesai,
+                kelasId,
+                ruangan
             });
         }
 
-        //EDIT JADWAL
         public async Task<int> UpdateJadwalAsync(
-    int id,
-    int guruId,
-    string mapel,
-    int hari,
-    TimeSpan mulai,
-    TimeSpan selesai,
-    int kelasId,
-    string? ruangan)
+            int id,
+            int guruId,
+            string mapel,
+            int hari,
+            TimeSpan mulai,
+            TimeSpan selesai,
+            int kelasId,
+            string? ruangan)
         {
             const string sql = @"
-UPDATE dbo.Jadwal
-SET GuruId = @GuruId,
-    Mapel  = @Mapel,
-    Hari   = @Hari,
-    Mulai  = @Mulai,
-    Selesai = @Selesai,
-    KelasId = @KelasId,
-    Ruangan = @Ruangan
-WHERE Id = @Id;";
+UPDATE jadwal
+SET guruid = @guruId,
+    mapel  = @mapel,
+    hari   = @hari,
+    mulai  = @mulai,
+    selesai = @selesai,
+    kelasid = @kelasId,
+    ruangan = @ruangan
+WHERE id = @id;";
 
-            using var db = Conn();
-            return await db.ExecuteAsync(sql, new
+            await using var db = Conn();
+            await db.OpenAsync();
+            return await db.ExecuteScalarAsync<int>(sql, new
             {
-                Id = id,
-                GuruId = guruId,
-                Mapel = mapel,
-                Hari = hari,
-                Mulai = mulai,
-                Selesai = selesai,
-                KelasId = kelasId,
-                Ruangan = ruangan
+                id,
+                guruId,
+                mapel,
+                hari,
+                mulai,
+                selesai,
+                kelasId,
+                ruangan
             });
         }
 
         public async Task<IEnumerable<JadwalRow>> ListJadwalAsync(int? hari = null)
         {
             const string sql = @"
-SELECT  j.Id,
-        j.GuruId,
-        ISNULL(g.Nama,'(Guru tidak ada)')                   AS GuruNama,
-        COALESCE(m.Nama, j.Mapel, '(Tanpa mapel)')         AS Mapel, 
-        CAST(j.Hari AS int)                                 AS Hari,
-        j.Mulai,
-        j.Selesai,
-        j.KelasId,
-        ISNULL(k.Nama,'(Kelas tidak ada)')                  AS KelasNama,
-        j.Ruangan
-FROM dbo.Jadwal j
-LEFT JOIN dbo.Guru  g ON g.Id = j.GuruId
-LEFT JOIN dbo.Kelas k ON k.Id = j.KelasId
-LEFT JOIN dbo.Mapel m ON m.Id = g.MapelId           
-WHERE (@hari IS NULL OR j.Hari = @hari)
-ORDER BY j.Hari, j.Mulai;";
-            using var db = Conn();
+SELECT  j.id,
+        j.guruid,
+        COALESCE(g.nama,'(guru tidak ada)')                 AS GuruNama,
+        COALESCE(j.mapel, m.nama, '(Tanpa mapel)')          AS Mapel, 
+        CAST(j.hari AS int)                                 AS Hari,
+        j.mulai,
+        j.selesai,
+        j.kelasid,
+        -- PERBAIKAN: Menggabungkan tingkat dan nama kelas (Contoh: 'X IPA1')
+        COALESCE(k.tingkat || ' ' || k.nama, '(kelas tidak ada)') AS KelasNama,
+        j.ruangan
+FROM jadwal j
+LEFT JOIN guru  g ON g.id = j.guruid
+LEFT JOIN kelas k ON k.id = j.kelasid
+LEFT JOIN mapel m ON m.id = g.mapelid            
+WHERE (@hari IS NULL OR j.hari = @hari)
+ORDER BY j.hari, j.mulai;";
+
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.QueryAsync<JadwalRow>(sql, new { hari });
         }
 
         public async Task<int> DeleteJadwalAsync(int id)
         {
-            const string sql = @"DELETE FROM dbo.Jadwal WHERE Id = @id;";
-            using var db = Conn();
-            return await db.ExecuteAsync(sql, new { id });
+            const string sql = @"DELETE FROM jadwal WHERE id = @id;";
+            await using var db = Conn();
+            await db.OpenAsync();
+            return await db.ExecuteScalarAsync<int>(sql, new { id });
         }
 
         public async Task<IEnumerable<JadwalRow>> ListJadwalAsync(string? hari)
@@ -751,31 +765,33 @@ ORDER BY j.Hari, j.Mulai;";
         public Task<IEnumerable<JadwalRow>> GetAllJadwalAsync(string? hari = null)
             => ListJadwalAsync(string.IsNullOrWhiteSpace(hari) ? null : DayNameToNum(hari));
 
-        // === GURU + LOAD (pakai JOIN Mapel) ===
+        // === GURU + LOAD ===
         public record GuruLoadRow(int Id, string Guru, string Mapel, int MaxWeeklyLoad, int CurrentLoad);
 
         public async Task<IEnumerable<GuruLoadRow>> GetGuruByMapelWithLoadAsync(string mapelNama)
         {
             const string sql = @"
-SELECT 
-    g.Id,
-    g.Nama AS Guru,
-    @mapelNama AS Mapel,                                   
-    ISNULL(g.MaxWeeklyLoad,24) AS MaxWeeklyLoad,
-    ISNULL(SUM(DATEDIFF(MINUTE, j.Mulai, j.Selesai)), 0) AS CurrentLoad
-FROM dbo.Guru g
-JOIN dbo.GuruMapel gm ON gm.GuruId = g.Id         
-JOIN dbo.Mapel m     ON m.Id      = gm.MapelId
-LEFT JOIN dbo.Jadwal j ON j.GuruId = g.Id
-WHERE m.Nama = @mapelNama                                  
-GROUP BY g.Id, g.Nama, g.MaxWeeklyLoad
-ORDER BY g.Nama;";
+            SELECT 
+                g.id AS Id,
+                g.nama AS Guru,
+                m.nama AS Mapel,                                   
+                CAST(COALESCE(g.maxweeklyload, 24) AS integer) AS MaxWeeklyLoad,
+                CAST(COALESCE((
+                    SELECT SUM(EXTRACT(EPOCH FROM (j.selesai - j.mulai)) / 60) 
+                    FROM jadwal j 
+                    WHERE j.guruid = g.id
+                ), 0) AS integer) AS CurrentLoad
+            FROM guru g
+            JOIN gurumapel gm ON gm.guruid = g.id         
+            JOIN mapel m      ON m.id      = gm.mapelid
+            WHERE LOWER(TRIM(m.nama)) = LOWER(TRIM(@mapelNama))
+            ORDER BY g.nama;";
 
-            using var db = Conn();
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.QueryAsync<GuruLoadRow>(sql, new { mapelNama });
         }
 
-        // Aliases konflik waktu (legacy + baru)
         public Task<bool> HasTimeConflictAsync(int guruId, string hari, TimeSpan mulai, TimeSpan selesai, int? excludeId = null)
             => HasScheduleConflictAsync(guruId, DayNameToNum(hari), mulai, selesai, excludeId);
         public Task<bool> HasTimeConflictAsync(int guruId, TimeSpan mulai, string hari, TimeSpan selesai, int? excludeId = null)
@@ -787,35 +803,40 @@ ORDER BY g.Nama;";
         public async Task<IEnumerable<JadwalRow>> ListJadwalByKelasAsync(int kelasId)
         {
             const string sql = @"
-SELECT j.Id,
-       j.GuruId,
-       ISNULL(g.Nama,'(Guru tidak ada)') AS GuruNama,
-       ISNULL(j.Mapel,'(Tanpa mapel)')   AS Mapel,
-       CAST(j.Hari AS int)               AS Hari,
-       j.Mulai,
-       j.Selesai,
-       j.KelasId,
-       ISNULL(k.Nama,'(Kelas tidak ada)') AS KelasNama,
-       j.Ruangan
-FROM dbo.Jadwal j
-LEFT JOIN dbo.Guru  g ON g.Id = j.GuruId
-LEFT JOIN dbo.Kelas k ON k.Id = j.KelasId
-WHERE j.KelasId = @kelasId
-ORDER BY j.Hari, j.Mulai;";
-            using var db = Conn();
+SELECT j.id,
+       j.guruid,
+       COALESCE(g.nama,'(guru tidak ada)') AS GuruNama,
+       COALESCE(j.mapel,'(Tanpa mapel)')   AS Mapel,
+       CAST(j.hari AS int)                 AS Hari,
+       j.mulai,
+       j.selesai,
+       j.kelasid,
+       -- PERBAIKAN: Menggabungkan tingkat dan nama kelas
+       COALESCE(k.tingkat || ' ' || k.nama, '(kelas tidak ada)') AS KelasNama,
+       j.ruangan
+FROM jadwal j
+LEFT JOIN guru  g ON g.id = j.guruid
+LEFT JOIN kelas k ON k.id = j.kelasid
+WHERE j.kelasid = @kelasId
+ORDER BY j.hari, j.mulai;";
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.QueryAsync<JadwalRow>(sql, new { kelasId });
         }
 
-        public async Task<IEnumerable<Latihan1.Models.MapelListItemVm>> GetMapelWithCountsAsync()
+        public async Task<IEnumerable<Latihan1.Models.mapelListItemVm>> GetMapelWithCountsAsync()
         {
+            // KITA UBAH JOIN-NYA DARI 'guru' MENJADI 'gurumapel'
             const string sql = @"
-SELECT m.Id, m.Kode, m.Nama, COUNT(g.Id) AS [Count]
-FROM dbo.Mapel m
-LEFT JOIN dbo.Guru g ON g.MapelId = m.Id
-GROUP BY m.Id, m.Kode, m.Nama
-ORDER BY m.Nama;";
-            using var db = Conn();
-            return await db.QueryAsync<Latihan1.Models.MapelListItemVm>(sql);
+SELECT m.id, m.kode, m.nama, CAST(COUNT(gm.guruid) AS int) AS ""Count""
+FROM mapel m
+LEFT JOIN gurumapel gm ON gm.mapelid = m.id
+GROUP BY m.id, m.kode, m.nama
+ORDER BY m.nama;";
+
+            await using var db = Conn();
+            await db.OpenAsync(); // Selalu pastikan ada OpenAsync ya!
+            return await db.QueryAsync<Latihan1.Models.mapelListItemVm>(sql);
         }
 
         // ===== DASHBOARD HELPERS =====
@@ -825,17 +846,18 @@ ORDER BY m.Nama;";
         {
             const string sql = @"
 SELECT 
-    g.Nama,
-    m.Nama AS Mapel,
-    ISNULL(SUM(DATEDIFF(MINUTE, j.Mulai, j.Selesai)), 0) AS LoadMinutes,
-    ISNULL(g.MaxWeeklyLoad, 24) AS MaxWeeklyLoad
-FROM dbo.Guru g
-JOIN dbo.Mapel m ON m.Id = g.MapelId
-LEFT JOIN dbo.Jadwal j ON j.GuruId = g.Id
-WHERE g.IsActive = 1
-GROUP BY g.Nama, m.Nama, g.MaxWeeklyLoad
-ORDER BY g.Nama;";
-            using var db = Conn();
+    g.nama,
+    m.nama AS Mapel,
+    COALESCE(CAST(SUM(EXTRACT(EPOCH FROM (j.selesai - j.mulai)) / 60) AS integer), 0) AS LoadMinutes,
+    COALESCE(g.maxweeklyload, 24) AS MaxWeeklyLoad
+FROM guru g
+JOIN mapel m ON m.id = g.mapelid
+LEFT JOIN jadwal j ON j.guruid = g.id
+WHERE g.isactive = true
+GROUP BY g.nama, m.nama, g.maxweeklyload
+ORDER BY g.nama;";
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.QueryAsync<TeacherLoadRow>(sql);
         }
 
@@ -844,74 +866,73 @@ ORDER BY g.Nama;";
         public async Task<DashboardCountsRow> GetDashboardCountsAsync(int todayNum)
         {
             const string sql = @"
-DECLARE @TotalSesi   int = (SELECT COUNT(*) FROM dbo.Jadwal);
-DECLARE @SesiHariIni int = (SELECT COUNT(*) FROM dbo.Jadwal WHERE Hari = @today);
-
-;WITH J AS (
-    SELECT GuruId, Hari, Mulai, Selesai
-    FROM dbo.Jadwal
+WITH J AS (
+    SELECT guruid, hari, mulai, selesai
+    FROM jadwal
 ),
 Pairs AS (
-    SELECT COUNT(*) AS Cnt
+    SELECT CAST(COUNT(*) AS int) AS Cnt
     FROM J a
     JOIN J b
-      ON a.GuruId = b.GuruId
-     AND a.Hari   = b.Hari
-     AND (a.Mulai < b.Selesai AND a.Selesai > b.Mulai)
-     AND (a.Mulai <> b.Mulai OR a.Selesai <> b.Selesai)
+      ON a.guruid = b.guruid
+     AND a.hari   = b.hari
+     AND (a.mulai < b.selesai AND a.selesai > b.mulai)
+     AND (a.mulai <> b.mulai OR a.selesai <> b.selesai)
 )
 SELECT 
-    @TotalSesi                              AS TotalSesi,
-    @SesiHariIni                            AS SesiHariIni,
-    ISNULL((SELECT TOP 1 Cnt FROM Pairs),0) AS Konflik,
-    (SELECT COUNT(*) FROM dbo.Guru WHERE IsActive = 1) AS GuruAktif;";
-            using var db = Conn();
+    CAST((SELECT COUNT(*) FROM jadwal) AS int) AS TotalSesi,
+    CAST((SELECT COUNT(*) FROM jadwal WHERE hari = @today) AS int) AS SesiHariIni,
+    COALESCE((SELECT Cnt FROM Pairs LIMIT 1), 0) AS Konflik,
+    CAST((SELECT COUNT(*) FROM guru WHERE isactive = true) AS int) AS GuruAktif;";
+
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.QuerySingleAsync<DashboardCountsRow>(sql, new { today = todayNum });
         }
 
         public async Task<IEnumerable<int>> GetLockedMapelIdsForGuruAsync(int guruId)
         {
             const string sql = @"
-SELECT DISTINCT m.Id
-FROM dbo.Jadwal j
-JOIN dbo.Mapel m
-    ON  LOWER(LTRIM(RTRIM(j.Mapel))) = LOWER(LTRIM(RTRIM(m.Nama)))    -- samakan nama mapel (case-insensitive + trim)
-WHERE j.GuruId = @GuruId;
+SELECT DISTINCT m.id
+FROM jadwal j
+JOIN mapel m
+    ON  LOWER(LTRIM(RTRIM(j.mapel))) = LOWER(LTRIM(RTRIM(m.nama)))
+WHERE j.guruid = @guruId;
 ";
 
-            using var conn = Conn();
-            return await conn.QueryAsync<int>(sql, new { GuruId = guruId });
+            await using var db = Conn();
+            await db.OpenAsync();
+            return await db.QueryAsync<int>(sql, new { guruId });
         }
 
         public async Task<bool> IsEmailExistsAsync(string email, int? excludeId = null)
         {
-            // Gunakan 'string' atau 'var', JANGAN gunakan 'const'
             string sql = @"
         SELECT COUNT(1) 
-        FROM dbo.Guru 
-        WHERE Email = @email";
+        FROM guru 
+        WHERE email = @email";
 
-            // Tambahkan kondisi secara dinamis
             if (excludeId.HasValue)
             {
-                sql += " AND Id <> @excludeId";
+                sql += " AND id <> @excludeId";
             }
 
-            using var db = Conn();
-            // Dapper akan otomatis mencocokkan parameter meskipun excludeId bernilai null
+            await using var db = Conn();
+            await db.OpenAsync();
             return await db.ExecuteScalarAsync<int>(sql, new { email, excludeId }) > 0;
         }
-        public async Task<bool> IsNipExistsAsync(string nip, int? excludeId = null)
+
+        public async Task<bool> IsnipExistsAsync(string nip, int? excludeId = null)
         {
-            // Cek apakah NIP sudah ada, jika excludeId diisi (saat Edit), abaikan ID tersebut
-            string sql = "SELECT COUNT(1) FROM dbo.Guru WHERE NIP = @nip";
+            string sql = "SELECT COUNT(1) FROM guru WHERE nip = @nip";
 
             if (excludeId.HasValue)
             {
-                sql += " AND Id <> @excludeId";
+                sql += " AND id <> @excludeId";
             }
 
-            using var db = Conn();
+            await using var db = Conn();
+            await db.OpenAsync();
             var count = await db.ExecuteScalarAsync<int>(sql, new { nip, excludeId });
             return count > 0;
         }
@@ -921,15 +942,16 @@ WHERE j.GuruId = @GuruId;
         {
             const string sql = @"
 SELECT 1
-FROM dbo.Jadwal j
-WHERE j.KelasId = @KelasId
-  AND j.Hari    = @Hari
-  AND (@Mulai   < j.Selesai AND @Selesai > j.Mulai)
-  AND (@ExcludeId IS NULL OR j.Id <> @ExcludeId);";
+FROM jadwal j
+WHERE j.kelasid = @kelasId
+  AND j.hari    = @hari
+  AND (@mulai   < j.selesai AND @selesai > j.mulai)
+  AND (@excludeId IS NULL OR j.id <> @excludeId);";
 
-            using var db = Conn();
+            await using var db = Conn();
+            await db.OpenAsync();
             var exists = await db.ExecuteScalarAsync<int?>(
-                sql, new { KelasId = kelasId, Hari = hari, Mulai = mulai, Selesai = selesai, ExcludeId = excludeId });
+                sql, new { kelasId, hari, mulai, selesai, excludeId });
 
             return exists.HasValue;
         }

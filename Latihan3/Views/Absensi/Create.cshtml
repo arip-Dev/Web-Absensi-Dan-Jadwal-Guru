@@ -1,4 +1,4 @@
-﻿@model Latihan3.Models.AbsensiGuru
+﻿@model Latihan3.Models.absensiguru
 @{
     ViewData["Title"] = "Input Absensi Manual";
 }
@@ -24,43 +24,43 @@
         <div asp-validation-summary="ModelOnly" class="text-red-500 mb-4"></div>
 
         <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700">Nama Guru</label>
+            <label class="block text-sm font-medium text-gray-700">nama guru</label>
             
-            <select id="SelectGuru" asp-for="Id" class="mt-1 block w-full rounded border-gray-300 p-2 shadow-sm border">
-                @if (ViewBag.GuruList != null)
+            <select id="Selectguru" asp-for="id" class="mt-1 block w-full rounded border-gray-300 p-2 shadow-sm border">
+                @if (ViewBag.guruList != null)
                 {
                     // Bagian ini hanya akan terisi jika terjadi Error Validasi (setelah tombol simpan ditekan)
-                    foreach (var item in (IEnumerable<SelectListItem>)ViewBag.GuruList)
+                    foreach (var item in (IEnumerable<SelectListItem>)ViewBag.guruList)
                     {
                         <option value="@item.Value" selected="@item.Selected">@item.Text</option>
                     }
                 }
                 // Jika ViewBag null, tidak ada option yang dirender
             </select>
-            <span asp-validation-for="Id" class="text-xs text-red-500"></span>
+            <span asp-validation-for="id" class="text-xs text-red-500"></span>
         </div>
 
         <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700">Tanggal</label>
-            <input asp-for="Tanggal" type="datetime-local" class="mt-1 block w-full rounded border-gray-300 p-2 shadow-sm border" value="@Model.Tanggal.ToString("yyyy-MM-ddTHH:mm")" />
-            <span asp-validation-for="Tanggal" class="text-xs text-red-500"></span>
+            <label class="block text-sm font-medium text-gray-700">tanggal</label>
+            <input asp-for="tanggal" type="datetime-local" class="mt-1 block w-full rounded border-gray-300 p-2 shadow-sm border" value="@Model.tanggal.ToString("yyyy-MM-ddTHH:mm")" />
+            <span asp-validation-for="tanggal" class="text-xs text-red-500"></span>
         </div>
 
         <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700">Status Kehadiran</label>
-            <select asp-for="Status" class="mt-1 block w-full rounded border-gray-300 p-2 shadow-sm border">
+            <label class="block text-sm font-medium text-gray-700">status Kehadiran</label>
+            <select asp-for="status" class="mt-1 block w-full rounded border-gray-300 p-2 shadow-sm border">
                 <option value="Hadir">Hadir (Lupa Scan)</option>
                 <option value="Sakit">Sakit</option>
                 <option value="Izin">Izin</option>
-                <option value="Alpa">Tanpa Keterangan (Alpa)</option>
+                <option value="Alpa">Tanpa keterangan (Alpa)</option>
             </select>
-            <span asp-validation-for="Status" class="text-xs text-red-500"></span>
+            <span asp-validation-for="status" class="text-xs text-red-500"></span>
         </div>
 
         <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700">Keterangan (Opsional)</label>
-            <textarea asp-for="Keterangan" class="mt-1 block w-full rounded border-gray-300 p-2 shadow-sm border" placeholder="Contoh: Surat dokter terlampir..."></textarea>
-            <span asp-validation-for="Keterangan" class="text-xs text-red-500"></span>
+            <label class="block text-sm font-medium text-gray-700">keterangan (Opsional)</label>
+            <textarea asp-for="keterangan" class="mt-1 block w-full rounded border-gray-300 p-2 shadow-sm border" placeholder="Contoh: Surat dokter terlampir..."></textarea>
+            <span asp-validation-for="keterangan" class="text-xs text-red-500"></span>
         </div>
 
         <div class="flex justify-end gap-2">
@@ -78,14 +78,14 @@
     <script>
         $(document).ready(function() {
             // --- INI BAGIAN YANG ANDA LEWATKAN SEBELUMNYA ---
-            $('#SelectGuru').select2({
-                placeholder: "-- Cari Nama Guru --",
+            $('#Selectguru').select2({
+                placeholder: "-- Cari nama guru --",
                 allowClear: true,
                 width: '100%',
                 minimumInputLength: 2, // Search baru jalan kalau ketik 2 huruf
                 ajax: {
                     // Gunakan Url.Action agar link otomatis benar meskipun folder berubah
-                    url: '@Url.Action("SearchGuru", "Absensi")', 
+                    url: '@Url.Action("Searchguru", "Absensi")', 
                     dataType: 'json',
                     delay: 250,
                     data: function (params) {

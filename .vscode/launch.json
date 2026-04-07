@@ -1,0 +1,63 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Latihan 1",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-latihan1",
+      "program": "${workspaceFolder}/Latihan1/bin/Debug/net8.0/Latihan1.dll",
+      "cwd": "${workspaceFolder}/Latihan1",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    {
+      "name": "Latihan 2",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-latihan2",
+      "program": "${workspaceFolder}/Latihan2/bin/Debug/net8.0/Latihan2.dll",
+      "cwd": "${workspaceFolder}/Latihan2",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    {
+      "name": "Latihan 3",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-latihan3",
+      "program": "${workspaceFolder}/Latihan3/bin/Debug/net8.0/Latihan3.dll",
+      "cwd": "${workspaceFolder}/Latihan3",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Run All (Latihan 1, 2, 3)",
+      "configurations": [
+        "Latihan 1",
+        "Latihan 2",
+        "Latihan 3"
+      ]
+    }
+  ]
+}

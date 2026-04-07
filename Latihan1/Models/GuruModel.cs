@@ -1,30 +1,30 @@
-﻿// Models/GuruModel.cs
+﻿// Models/guruModel.cs
 using System.ComponentModel.DataAnnotations;
 
 namespace Latihan1.Models
 {
-    public class GuruModel
+    public class guruModel
     {
-        public int Id { get; set; }
-        public string Nama { get; set; } = "";
-        public string NIP { get; set; } = "";
+        public int id { get; set; }
+        public string nama { get; set; } = "";
+        public string nip { get; set; } = "";
         [Required, EmailAddress]
-        public string Email { get; set; } = "";
-        public int JamMengajar { get; set; }
-        public bool IsActive { get; set; }
-        public int MaxWeeklyLoad { get; set; }
-        public int MaxDailyLoad { get; set; }
-        public int MaxConsecutiveSlots { get; set; }
-        public int MapelId { get; set; }
-        public int[] MapelIds { get; set; } = Array.Empty<int>();
-        public string? MapelNama { get; set; }
-        public string? QRCodeBase64 { get; set; }
+        public string email { get; set; } = "";
+        public int jammengajar { get; set; }
+        public bool isactive { get; set; }
+        public int maxweeklyload { get; set; }
+        public int maxdailyload { get; set; }
+        public int maxconsecutiveslots { get; set; }
+        public int mapelid { get; set; }
+        public int[] mapelids { get; set; } = Array.Empty<int>();
+        public string? mapelnama { get; set; }
+        public string? qrcodebase64 { get; set; }
     }
 
     // ViewModel untuk halaman list (paging + search)
     public class TeacherListViewModel
     {
-        public IEnumerable<GuruModel> Items { get; set; } = Enumerable.Empty<GuruModel>();
+        public IEnumerable<guruModel> Items { get; set; } = Enumerable.Empty<guruModel>();
         public string? Query { get; set; }
         public int Page { get; set; }
         public int PageSize { get; set; }

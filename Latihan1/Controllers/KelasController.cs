@@ -3,6 +3,7 @@ using Latihan1.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using Npgsql;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure; // for Settings.License
@@ -11,30 +12,30 @@ using System.Text;
 namespace Latihan1.Controllers
 {
     [Authorize(AuthenticationSchemes = "CookieSekolah", Roles = "Admin")]
-    public class KelasController : Controller
+    public class kelasController : Controller
     {
         private readonly DapperDb _db;
-        public KelasController(DapperDb db) => _db = db;
+        public kelasController(DapperDb db) => _db = db;
 
         // Helper mapping
-        private static KelasModel Map(DapperDb.KelasRow r) => new KelasModel
+        private static kelasModel Map(DapperDb.KelasRow r) => new kelasModel
         {
-            Id = r.Id,
-            Tingkat = r.Tingkat,
-            Nama = r.Nama,
-            IsActive = r.IsActive,
-            CreatedAt = r.CreatedAt
+            id = r.Id,
+            tingkat = r.Tingkat,
+            nama = r.Nama,
+            isactive = r.IsActive,
+            createdat = r.CreatedAt
         };
 
-        // GET /Kelas  atau /Kelas?tingkat=X
+        // GET /kelas  atau /kelas?tingkat=X
         [HttpGet]
         public async Task<IActionResult> Index(string? tingkat)
         {
             // === Selalu isi ViewData["Groups"] dengan tipe yang BENAR ===
-            var groupRows = await _db.GetKelasGroupsAsync(); // SELECT Tingkat, COUNT(*)
-            var groupVm = groupRows.Select(g => new KelasGroupVm
+            var groupRows = await _db.GetKelasGroupsAsync(); // SELECT tingkat, COUNT(*)
+            var groupVm = groupRows.Select(g => new kelasGroupVm
             {
-                Tingkat = g.Tingkat,
+                tingkat = g.Tingkat,
                 Count = g.Count
             }).ToList();
             ViewData["Groups"] = groupVm;
@@ -42,12 +43,12 @@ namespace Latihan1.Controllers
             if (string.IsNullOrWhiteSpace(tingkat))
             {
                 // Halaman grid X / XI / XII
-                var vm = new KelasListVm
+                var vm = new kelasListVm
                 {
-                    Tingkat = null,
-                    Items = Enumerable.Empty<KelasModel>()
+                    tingkat = null,
+                    Items = Enumerable.Empty<kelasModel>()
                 };
-                return View("~/Views/Adminpage/Kelas/Index.cshtml", vm);
+                return View("~/Views/Adminpage/kelas/Index.cshtml", vm);
             }
 
             // Halaman daftar kelas per tingkat
@@ -55,72 +56,92 @@ namespace Latihan1.Controllers
             var items = rows.Select(Map);
 
             return View(
-                "~/Views/Adminpage/Kelas/Index.cshtml",
-                new KelasListVm { Tingkat = tingkat, Items = items }
+                "~/Views/Adminpage/kelas/Index.cshtml",
+                new kelasListVm { tingkat = tingkat, Items = items }
             );
         }
 
-        // GET /Kelas/Create?tingkat=X
+        // GET /kelas/Create?tingkat=X
         [HttpGet]
         public IActionResult Create(string? tingkat = "X")
         {
-            var m = new KelasModel { Tingkat = tingkat ?? "X", IsActive = true };
-            return View("~/Views/Adminpage/Kelas/Create.cshtml", m);
+            var m = new kelasModel { tingkat = tingkat ?? "X", isactive = true };
+            return View("~/Views/Adminpage/kelas/Create.cshtml", m);
         }
 
-        // POST /Kelas/Create
+        // POST /kelas/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(KelasModel m)
+        public async Task<IActionResult> Create(kelasModel m)
         {
             if (!ModelState.IsValid)
-                return View("~/Views/Adminpage/Kelas/Create.cshtml", m);
+                return View("~/Views/Adminpage/kelas/Create.cshtml", m);
 
             try
             {
-                await _db.InsertKelasAsync(m.Tingkat, m.Nama, m.IsActive);
+                await _db.CreateKelasAsync(m);
                 TempData["ok"] = "Kelas berhasil ditambahkan.";
-                return RedirectToAction(nameof(Index), new { tingkat = m.Tingkat });
+                return RedirectToAction(nameof(Index));
             }
-            catch (SqlException ex) when (ex.Number is 2627 or 2601)
+            // Menangkap error duplikasi dari PostgreSQL (kode 23505)
+            catch (PostgresException ex) when (ex.SqlState == "23505")
             {
-                ModelState.AddModelError("", "Kelas dengan tingkat & nama tersebut sudah ada.");
-                return View("~/Views/Adminpage/Kelas/Create.cshtml", m);
+                ModelState.AddModelError("", "Kombinasi Tingkat dan Nama Kelas ini sudah digunakan.");
+                return View("~/Views/Adminpage/kelas/Create.cshtml", m);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Terjadi kesalahan sistem: " + ex.Message);
+                return View("~/Views/Adminpage/kelas/Create.cshtml", m);
             }
         }
 
-        // GET /Kelas/Edit/5
+        // GET /kelas/Edit/5
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
             var row = await _db.GetKelasByIdAsync(id);
             if (row is null) return NotFound();
 
-            var m = new KelasModel
+            var m = new kelasModel
             {
-                Id = row.Id,
-                Tingkat = row.Tingkat,
-                Nama = row.Nama,
-                IsActive = row.IsActive,
-                CreatedAt = row.CreatedAt
+                id = row.Id,
+                tingkat = row.Tingkat,
+                nama = row.Nama,
+                isactive = row.IsActive,
+                createdat = row.CreatedAt
             };
-            return View("~/Views/Adminpage/Kelas/Edit.cshtml", m);
+            return View("~/Views/Adminpage/kelas/Edit.cshtml", m);
         }
 
-        // POST /Kelas/Edit
+        // POST /kelas/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(KelasModel m)
+        public async Task<IActionResult> Edit(kelasModel m)
         {
             if (!ModelState.IsValid)
-                return View("~/Views/Adminpage/Kelas/Edit.cshtml", m);
+                return View("~/Views/Adminpage/kelas/Edit.cshtml", m);
 
-            await _db.UpdateKelasAsync(m.Id, m.Tingkat, m.Nama, m.IsActive);
-            TempData["ok"] = "Perubahan disimpan.";
-            return RedirectToAction(nameof(Index), new { tingkat = m.Tingkat });
+            try
+            {
+                await _db.UpdateKelasAsync(m);
+                TempData["ok"] = "Perubahan kelas disimpan.";
+                return RedirectToAction(nameof(Index));
+            }
+            // Menangkap error duplikasi dari PostgreSQL (kode 23505)
+            catch (PostgresException ex) when (ex.SqlState == "23505")
+            {
+                ModelState.AddModelError("", "Kombinasi Tingkat dan Nama Kelas ini sudah digunakan.");
+                return View("~/Views/Adminpage/kelas/Edit.cshtml", m);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Terjadi kesalahan sistem: " + ex.Message);
+                return View("~/Views/Adminpage/kelas/Edit.cshtml", m);
+            }
         }
 
-        // POST /Kelas/Delete
+        // POST /kelas/Delete
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id, string tingkat)
@@ -128,38 +149,38 @@ namespace Latihan1.Controllers
             try
             {
                 await _db.DeleteKelasAsync(id);
-                TempData["ok"] = "Kelas dihapus.";
+                TempData["ok"] = "kelas dihapus.";
             }
             catch (SqlException ex) when (ex.Number == 547)
             {
-                TempData["err"] = "Kelas tidak dapat dihapus karena sedang dipakai data lain.";
+                TempData["err"] = "kelas tidak dapat dihapus karena sedang dipakai data lain.";
             }
             return RedirectToAction(nameof(Index), new { tingkat });
         }
 
-        // GET /Kelas/Jadwal/5  (id = KelasId)
+        // GET /kelas/jadwal/5  (id = kelasid)
         [HttpGet]
-        public async Task<IActionResult> Jadwal(int id)
+        public async Task<IActionResult> jadwal(int id)
         {
             var k = await _db.GetKelasByIdAsync(id);
             if (k is null) return NotFound();
 
             var items = await _db.ListJadwalByKelasAsync(id);
 
-            var vm = new KelasJadwalVm
+            var vm = new kelasjadwalVm
             {
-                Kelas = new KelasModel
+                kelas = new kelasModel
                 {
-                    Id = k.Id,
-                    Tingkat = k.Tingkat,
-                    Nama = k.Nama,
-                    IsActive = k.IsActive,
-                    CreatedAt = k.CreatedAt
+                    id = k.Id,
+                    tingkat = k.Tingkat,
+                    nama = k.Nama,
+                    isactive = k.IsActive,
+                    createdat = k.CreatedAt
                 },
                 Items = items
             };
 
-            return View("~/Views/Adminpage/Kelas/Jadwal.cshtml", vm);
+            return View("~/Views/Adminpage/kelas/jadwal.cshtml", vm);
         }
         private static string DayName(int d)
         {
@@ -187,7 +208,7 @@ namespace Latihan1.Controllers
 
             var sb = new StringBuilder();
             // header
-            sb.AppendLine("Hari,Waktu,Mapel,Guru,Ruangan");
+            sb.AppendLine("hari,Waktu,mapel,guru,ruangan");
             foreach (var r in ordered)
             {
                 var hari = DayName(r.Hari);
@@ -197,7 +218,7 @@ namespace Latihan1.Controllers
                 sb.AppendLine($"{Q(hari)},{Q(waktu)},{Q(r.Mapel)},{Q(r.GuruNama)},{Q(r.Ruangan ?? "")}");
             }
 
-            var fileName = $"Jadwal_{kelas.Tingkat}-{kelas.Nama}.csv";
+            var fileName = $"jadwal_{kelas.Tingkat}-{kelas.Nama}.csv";
             // Tambahkan BOM agar enak dibuka di Excel
             var bom = Encoding.UTF8.GetPreamble();
             var body = Encoding.UTF8.GetBytes(sb.ToString());
@@ -220,7 +241,7 @@ namespace Latihan1.Controllers
             // QuestPDF perlu set lisensi Community
             //Settings.License = LicenseType.Community;
 
-            var title = $"Jadwal Kelas {kelas.Tingkat}-{kelas.Nama}";
+            var title = $"jadwal kelas {kelas.Tingkat}-{kelas.Nama}";
             var bytes = Document.Create(container =>
             {
                 container.Page(page =>
@@ -234,21 +255,21 @@ namespace Latihan1.Controllers
                         // kolom
                         table.ColumnsDefinition(cols =>
                         {
-                            cols.RelativeColumn(1);   // Hari
+                            cols.RelativeColumn(1);   // hari
                             cols.RelativeColumn(1.2f);// Waktu
-                            cols.RelativeColumn(1.5f);// Mapel
-                            cols.RelativeColumn(1.5f);// Guru
-                            cols.RelativeColumn(1.0f);// Ruangan
+                            cols.RelativeColumn(1.5f);// mapel
+                            cols.RelativeColumn(1.5f);// guru
+                            cols.RelativeColumn(1.0f);// ruangan
                         });
 
                         // header
                         table.Header(header =>
                         {
-                            header.Cell().Element(CellHeader).Text("Hari");
+                            header.Cell().Element(CellHeader).Text("hari");
                             header.Cell().Element(CellHeader).Text("Waktu");
-                            header.Cell().Element(CellHeader).Text("Mapel");
-                            header.Cell().Element(CellHeader).Text("Guru");
-                            header.Cell().Element(CellHeader).Text("Ruangan");
+                            header.Cell().Element(CellHeader).Text("mapel");
+                            header.Cell().Element(CellHeader).Text("guru");
+                            header.Cell().Element(CellHeader).Text("ruangan");
 
                             static IContainer CellHeader(IContainer c) =>
                                 c.DefaultTextStyle(x => x.SemiBold()).PaddingVertical(6).PaddingHorizontal(6)
@@ -280,7 +301,7 @@ namespace Latihan1.Controllers
                 });
             }).GeneratePdf();
 
-            var fileName = $"Jadwal_{kelas.Tingkat}-{kelas.Nama}.pdf";
+            var fileName = $"jadwal_{kelas.Tingkat}-{kelas.Nama}.pdf";
             return File(bytes, "application/pdf", fileName);
         }
 

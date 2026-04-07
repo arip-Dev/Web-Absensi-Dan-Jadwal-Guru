@@ -1,12 +1,12 @@
 ﻿@model IEnumerable<Latihan1.Services.DapperDb.JadwalRow>
 @{
-    ViewData["Title"] = "Laporan Lengkap Jadwal";
+    ViewData["Title"] = "Laporan Lengkap jadwal";
     string Day(int d) => new[] { "-", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu" }[Math.Clamp(d, 0, 7)];
 }
 <section class="mx-auto max-w-7xl px-4 py-8">
     <div class="mb-6 flex items-center justify-between">
         <div>
-            <h1 class="text-3xl font-bold tracking-tight">Laporan Lengkap Jadwal</h1>
+            <h1 class="text-3xl font-bold tracking-tight">Laporan Lengkap jadwal</h1>
             <p class="mt-1 text-slate-500">Semua jadwal guru dalam satu halaman</p>
         </div>
         <div class="flex gap-2">
@@ -19,11 +19,11 @@
         <table class="min-w-full divide-y divide-slate-200">
             <thead class="bg-slate-50">
                 <tr class="text-left text-sm font-semibold text-slate-700">
-                    <th class="px-6 py-3">Hari</th>
+                    <th class="px-6 py-3">hari</th>
                     <th class="px-6 py-3">Waktu</th>
-                    <th class="px-6 py-3">Mapel</th>
-                    <th class="px-6 py-3">Guru</th>
-                    <th class="px-6 py-3">Kelas / Ruangan</th>
+                    <th class="px-6 py-3">mapel</th>
+                    <th class="px-6 py-3">guru</th>
+                    <th class="px-6 py-3">kelas / ruangan</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 text-sm">

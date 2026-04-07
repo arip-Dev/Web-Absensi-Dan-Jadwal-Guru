@@ -3,69 +3,70 @@ using Latihan1.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using Npgsql;
 
 namespace Latihan1.Controllers
 {
     [Authorize(AuthenticationSchemes = "CookieSekolah", Roles = "Admin")]
-    public class MapelController : Controller
+    public class mapelController : Controller
     {
         private readonly DapperDb _db;
-        public MapelController(DapperDb db) => _db = db;
+        public mapelController(DapperDb db) => _db = db;
 
         // LIST
         [HttpGet]
         public async Task<IActionResult> Index()
         {
             var rows = await _db.GetMapelWithCountsAsync();
-            return View("~/Views/Adminpage/Mapel/Index.cshtml", rows);
+            return View("~/Views/Adminpage/mapel/Index.cshtml", rows);
         }
 
         // CREATE
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            var model = new MapelModel
+            var model = new mapelModel
             {
-                Kode = await _db.GenerateNextMapelCodeAsync()
+                kode = await _db.GenerateNextMapelCodeAsync()
             };
-            return View("~/Views/Adminpage/Mapel/Create.cshtml", model);
+            return View("~/Views/Adminpage/mapel/Create.cshtml", model);
         }
 
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(MapelModel m)
+        public async Task<IActionResult> Create(mapelModel m)
         {
-            // Nama wajib, kode kita generate sendiri
-            if (string.IsNullOrWhiteSpace(m.Nama))
-                ModelState.AddModelError(nameof(m.Nama), "Nama wajib diisi.");
+            // nama wajib, kode kita generate sendiri
+            if (string.IsNullOrWhiteSpace(m.nama))
+                ModelState.AddModelError(nameof(m.nama), "nama wajib diisi.");
 
             if (!ModelState.IsValid)
             {
                 // kalau validasi gagal, tetap tampilkan kode yang otomatis
-                if (string.IsNullOrWhiteSpace(m.Kode))
-                    m.Kode = await _db.GenerateNextMapelCodeAsync();
+                if (string.IsNullOrWhiteSpace(m.kode))
+                    m.kode = await _db.GenerateNextMapelCodeAsync();
 
-                return View("~/Views/Adminpage/Mapel/Create.cshtml", m);
+                return View("~/Views/Adminpage/mapel/Create.cshtml", m);
             }
 
             try
             {
                 // Paksa pakai kode auto generator, abaikan input user
-                m.Kode = await _db.GenerateNextMapelCodeAsync();
+                m.kode = await _db.GenerateNextMapelCodeAsync();
 
                 await _db.CreateMapelAsync(m);
-                TempData["ok"] = "Mapel berhasil ditambahkan.";
+                TempData["ok"] = "mapel berhasil ditambahkan.";
                 return RedirectToAction(nameof(Index));
             }
             catch (SqlException ex) when (ex.Number is 2601 or 2627) // duplicate
             {
-                ModelState.AddModelError("", "Kode/Nama sudah digunakan.");
+                ModelState.AddModelError("", "kode/nama sudah digunakan.");
                 // regenerate untuk tampilan ulang, kalau perlu
-                if (string.IsNullOrWhiteSpace(m.Kode))
-                    m.Kode = await _db.GenerateNextMapelCodeAsync();
+                if (string.IsNullOrWhiteSpace(m.kode))
+                    m.kode = await _db.GenerateNextMapelCodeAsync();
 
-                return View("~/Views/Adminpage/Mapel/Create.cshtml", m);
+                return View("~/Views/Adminpage/mapel/Create.cshtml", m);
             }
         }
 
@@ -75,20 +76,20 @@ namespace Latihan1.Controllers
         {
             var m = await _db.GetMapelByIdAsync(id);
             if (m is null) return NotFound();
-            return View("~/Views/Adminpage/Mapel/Edit.cshtml", m);
+            return View("~/Views/Adminpage/mapel/Edit.cshtml", m);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(MapelModel m)
+        public async Task<IActionResult> Edit(mapelModel m)
         {
-            if (string.IsNullOrWhiteSpace(m.Kode))
-                ModelState.AddModelError(nameof(m.Kode), "Kode wajib diisi.");
-            if (string.IsNullOrWhiteSpace(m.Nama))
-                ModelState.AddModelError(nameof(m.Nama), "Nama wajib diisi.");
+            if (string.IsNullOrWhiteSpace(m.kode))
+                ModelState.AddModelError(nameof(m.kode), "kode wajib diisi.");
+            if (string.IsNullOrWhiteSpace(m.nama))
+                ModelState.AddModelError(nameof(m.nama), "nama wajib diisi.");
 
             if (!ModelState.IsValid)
-                return View("~/Views/Adminpage/Mapel/Edit.cshtml", m);
+                return View("~/Views/Adminpage/mapel/Edit.cshtml", m);
 
             try
             {
@@ -98,8 +99,8 @@ namespace Latihan1.Controllers
             }
             catch (SqlException ex) when (ex.Number is 2601 or 2627)
             {
-                ModelState.AddModelError("", "Kode/Nama sudah digunakan.");
-                return View("~/Views/Adminpage/Mapel/Edit.cshtml", m);
+                ModelState.AddModelError("", "kode/nama sudah digunakan.");
+                return View("~/Views/Adminpage/mapel/Edit.cshtml", m);
             }
         }
 
@@ -110,13 +111,23 @@ namespace Latihan1.Controllers
         {
             try
             {
+                // Mencoba menghapus data mapel
                 await _db.DeleteMapelAsync(id);
-                TempData["ok"] = "Mapel dihapus.";
+
+                TempData["ok"] = "Mata pelajaran berhasil dihapus.";
             }
-            catch (SqlException ex) when (ex.Number == 547) // FK constraint
+            catch (PostgresException ex) when (ex.SqlState == "23503")
             {
-                TempData["err"] = "Tidak bisa menghapus: mapel masih dipakai oleh data guru.";
+                // 23503 adalah kode PostgreSQL untuk pelanggaran Foreign Key (Data masih dipakai)
+                TempData["Err"] = "Gagal menghapus: Mata pelajaran ini tidak bisa dihapus karena masih digunakan oleh satu atau lebih Guru.";
             }
+            catch (Exception ex)
+            {
+                // Menangkap error lainnya
+                TempData["Err"] = "Terjadi kesalahan sistem: " + ex.Message;
+            }
+
+            // Sesuaikan "Index" dengan nama method halaman list mapel kamu (misalnya Mapel_data)
             return RedirectToAction(nameof(Index));
         }
     }

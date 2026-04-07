@@ -1,27 +1,27 @@
-﻿@model Latihan1.Models.KelasListVm
+﻿@model Latihan1.Models.kelasListVm
 @using Latihan1.Models
 @{
-    ViewData["Title"] = "Kelas";
+    ViewData["Title"] = "kelas";
     Layout = "_Layout";
 
-    var groups = ViewData["Groups"] as IEnumerable<KelasGroupVm>;
-    bool isDetail = !string.IsNullOrWhiteSpace(Model?.Tingkat);
+    var groups = ViewData["Groups"] as IEnumerable<kelasGroupVm>;
+    bool isDetail = !string.IsNullOrWhiteSpace(Model?.tingkat);
 }
 
 <section class="mx-auto max-w-7xl px-4 py-8">
     <div class="mb-6 flex items-center justify-between">
         <div>
-            <h1 class="text-3xl font-bold tracking-tight">Kelas @(!isDetail ? "" : Model!.Tingkat)</h1>
+            <h1 class="text-3xl font-bold tracking-tight">kelas @(!isDetail ? "" : Model!.tingkat)</h1>
             <p class="text-slate-500">
                 @(!isDetail ? "Pilih tingkat untuk melihat daftar kelas"
-                                : $"Daftar kelas tingkat {Model!.Tingkat}")
+                                : $"Daftar kelas tingkat {Model!.tingkat}")
             </p>
         </div>
 
         @if (isDetail)
         {
-            <a asp-controller="Kelas" asp-action="Create" asp-route-tingkat="@Model!.Tingkat"
-               class="rounded-xl bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">Tambah Kelas</a>
+            <a asp-controller="kelas" asp-action="Create" asp-route-tingkat="@Model!.tingkat"
+               class="rounded-xl bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">Tambah kelas</a>
         }
     </div>
     @if (TempData["ok"] != null)
@@ -49,17 +49,17 @@
     }
     @if (!isDetail)
     {
-        <!-- ========== GRID TINGKAT (X / XI / XII) ========== -->
+        <!-- ========== GRid tingkat (X / XI / XII) ========== -->
         <div class="grid gap-6 md:grid-cols-3">
             @{
                 var order = new[] { "X", "XI", "XII" };
-                var dict = (groups ?? Enumerable.Empty<KelasGroupVm>())
-                .ToDictionary(g => g.Tingkat, g => g.Count);
+                var dict = (groups ?? Enumerable.Empty<kelasGroupVm>())
+                .ToDictionary(g => g.tingkat, g => g.Count);
             }
             @foreach (var t in order)
             {
                 var cnt = dict.TryGetValue(t, out var c) ? c : 0;
-                <a asp-controller="Kelas" asp-action="Index" asp-route-tingkat="@t"
+                <a asp-controller="kelas" asp-action="Index" asp-route-tingkat="@t"
                    class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md">
                     <div class="text-2xl font-semibold">@t</div>
                     <p class="text-slate-500 mt-1">@cnt kelas</p>
@@ -69,30 +69,30 @@
     }
     else
     {
-        <!-- ========== DAFTAR KELAS PER TINGKAT ========== -->
+        <!-- ========== DAFTAR kelas PER tingkat ========== -->
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             @foreach (var k in Model!.Items)
             {
                 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                     <div class="flex items-center justify-between">
                         <div>
-                            <div class="text-lg font-semibold">@k.Nama</div>
+                            <div class="text-lg font-semibold">@k.nama</div>
                             <div class="text-sm text-slate-500">
-                                @k.Tingkat • @(k.IsActive ? "Aktif" : "Nonaktif")
+                                @k.tingkat • @(k.isactive ? "Aktif" : "Nonaktif")
                             </div>
                         </div>
                         <div class="flex gap-2">
-                            <a asp-controller="Kelas" asp-action="Jadwal" asp-route-id="@k.Id"
+                            <a asp-controller="kelas" asp-action="jadwal" asp-route-id="@k.id"
                                class="rounded-lg bg-blue-600 px-3 py-1 text-white hover:bg-blue-700">
                                 Lihat jadwal
                             </a>
-                            <a asp-controller="Kelas" asp-action="Edit" asp-route-id="@k.Id"
+                            <a asp-controller="kelas" asp-action="Edit" asp-route-id="@k.id"
                                class="rounded-lg border px-3 py-1 hover:bg-slate-50">Edit</a>
-                            <form asp-controller="Kelas" asp-action="Delete" method="post"
-                                  onsubmit="return confirm('Hapus kelas @k.Nama?');">
+                            <form asp-controller="kelas" asp-action="Delete" method="post"
+                                  onsubmit="return confirm('Hapus kelas @k.nama?');">
                                 @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@k.Id" />
-                                <input type="hidden" name="tingkat" value="@k.Tingkat" />
+                                <input type="hidden" name="id" value="@k.id" />
+                                <input type="hidden" name="tingkat" value="@k.tingkat" />
                                 <button class="rounded-lg border px-3 py-1 text-red-600 hover:bg-red-50">Hapus</button>
                             </form>
                         </div>
@@ -103,7 +103,7 @@
 
 
         <div class="mt-6">
-            <a asp-controller="Kelas" asp-action="Index"
+            <a asp-controller="kelas" asp-action="Index"
                class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-slate-700 hover:bg-slate-50">
                 ← Kembali ke pilih tingkat
             </a>

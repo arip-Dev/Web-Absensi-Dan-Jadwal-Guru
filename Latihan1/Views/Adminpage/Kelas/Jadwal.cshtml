@@ -1,6 +1,6 @@
-﻿@model Latihan1.Models.KelasJadwalVm
+﻿@model Latihan1.Models.kelasjadwalVm
 @{
-    ViewData["Title"] = $"Jadwal Kelas {Model.Kelas.Tingkat}-{Model.Kelas.Nama}";
+    ViewData["Title"] = $"jadwal kelas {Model.kelas.tingkat}-{Model.kelas.nama}";
     Layout = "_Layout";
     string Day(int d) => new[] { "-", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu" }
                          [Math.Clamp(d, 0, 7)];
@@ -10,18 +10,18 @@
     <div class="mb-6 flex items-center justify-between">
         <div>
             <h1 class="text-3xl font-bold tracking-tight">
-                Jadwal • @Model.Kelas.Tingkat-@Model.Kelas.Nama
+                jadwal • @Model.kelas.tingkat-@Model.kelas.nama
             </h1>
             <p class="text-slate-500">Tampilkan semua pelajaran di kelas ini</p>
         </div>
 
         <div class="flex items-center gap-2">
-            <a asp-controller="Kelas" asp-action="DownloadCsv" asp-route-id="@Model.Kelas.Id"
+            <a asp-controller="kelas" asp-action="DownloadCsv" asp-route-id="@Model.kelas.id"
                class="rounded-xl border px-4 py-2 text-slate-700 hover:bg-slate-50">⬇ CSV</a>
-            <a asp-controller="Kelas" asp-action="DownloadPdf" asp-route-id="@Model.Kelas.Id"
+            <a asp-controller="kelas" asp-action="DownloadPdf" asp-route-id="@Model.kelas.id"
                class="rounded-xl bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">⬇ PDF</a>
 
-            <a asp-controller="Kelas" asp-action="Index" asp-route-tingkat="@Model.Kelas.Tingkat"
+            <a asp-controller="kelas" asp-action="Index" asp-route-tingkat="@Model.kelas.tingkat"
                class="rounded-xl border px-4 py-2 text-slate-700 hover:bg-slate-50">← Kembali</a>
         </div>
     </div>
@@ -30,11 +30,11 @@
         <table class="min-w-full divide-y divide-slate-200">
             <thead class="bg-slate-50">
                 <tr class="text-left text-sm font-semibold text-slate-700">
-                    <th class="px-6 py-3">Hari</th>
+                    <th class="px-6 py-3">hari</th>
                     <th class="px-6 py-3">Waktu</th>
-                    <th class="px-6 py-3">Mapel</th>
-                    <th class="px-6 py-3">Guru</th>
-                    <th class="px-6 py-3">Ruangan</th>
+                    <th class="px-6 py-3">mapel</th>
+                    <th class="px-6 py-3">guru</th>
+                    <th class="px-6 py-3">ruangan</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 text-sm">

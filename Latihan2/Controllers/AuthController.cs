@@ -33,7 +33,7 @@ namespace Latihan2.Controllers
         {
             if (User.Identity?.IsAuthenticated == true)
             {
-                return RedirectToAction("Pageguru", "PageGuru");
+                return RedirectToAction("Pageguru", "Pageguru");
             }
 
             // Jika user masuk dengan returnUrl=/guru atau /, kita bersihkan URL-nya
@@ -51,7 +51,7 @@ namespace Latihan2.Controllers
         [ValidateAntiForgeryToken] // Keamanan standar
         public async Task<IActionResult> Login(string nip, string password)
         {
-            // 1. Ambil Hash Password dari Database berdasarkan Username (NIP)
+            // 1. Ambil Hash Password dari Database berdasarkan username (nip)
             var storedHash = await _db.GetPasswordHashAsync(nip);
 
             if (string.IsNullOrEmpty(storedHash))
@@ -68,13 +68,13 @@ namespace Latihan2.Controllers
                 return View();
             }
 
-            // 3. Ambil Data Guru Lengkap (setelah password valid)
-            // Kita pakai LoginGuruDirectAsync karena password sudah diverifikasi di atas
+            // 3. Ambil Data guru Lengkap (setelah password valid)
+            // Kita pakai LoginguruDirectAsync karena password sudah diverifikasi di atas
             var guru = await _db.LoginGuruDirectAsync(nip);
 
             if (guru == null)
             {
-                ViewBag.Error = "Data Guru tidak ditemukan (Mungkin akun admin, bukan guru).";
+                ViewBag.Error = "Data guru tidak ditemukan (Mungkin akun admin, bukan guru).";
                 return View();
             }
 
@@ -82,12 +82,12 @@ namespace Latihan2.Controllers
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, guru.Nama),
-                new Claim("GuruId", guru.Id.ToString()), // PENTING: ID ini dipakai PageGuruController
-                new Claim(ClaimTypes.Role, "Guru")
+                new Claim("guruid", guru.Id.ToString()), // PENTING: id ini dipakai PageguruController
+                new Claim(ClaimTypes.Role, "guru")
             };
 
-            var identity = new ClaimsIdentity(claims, "CookieSekolah");
-            var principal = new ClaimsPrincipal(identity);
+            var Identity = new ClaimsIdentity(claims, "CookieSekolah");
+            var principal = new ClaimsPrincipal(Identity);
 
             // Simpan Cookie (Ingat Saya = 7 hari)
             await HttpContext.SignInAsync("CookieSekolah", principal, new AuthenticationProperties
@@ -96,7 +96,7 @@ namespace Latihan2.Controllers
                 ExpiresUtc = DateTime.UtcNow.AddDays(7)
             });
 
-            return RedirectToAction("Pageguru", "PageGuru");
+            return RedirectToAction("Pageguru", "Pageguru");
         }
 
         // 3. LOGOUT (Bersihkan Cookie Sendiri)
@@ -143,20 +143,20 @@ namespace Latihan2.Controllers
                 // Ambil data dari claims JWT
                 var username = jwtToken.Claims.FirstOrDefault(c => c.Type == "username")?.Value;
                 var role = jwtToken.Claims.FirstOrDefault(c => c.Type == "role")?.Value;
-                var guruId = jwtToken.Claims.FirstOrDefault(c => c.Type == "GuruId")?.Value;
+                var guruid = jwtToken.Claims.FirstOrDefault(c => c.Type == "guruid")?.Value;
 
-                if (username == null || role != "Guru") return RedirectToAction("Login");
+                if (username == null || role != "guru") return RedirectToAction("Login");
 
                 // Buat Sesi Login untuk Latihan2
                 var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, username),
-            new Claim("GuruId", guruId ?? "0"),
+            new Claim("guruid", guruid ?? "0"),
             new Claim(ClaimTypes.Role, role)
         };
 
-                var identity = new ClaimsIdentity(claims, "CookieSekolah");
-                var principal = new ClaimsPrincipal(identity);
+                var Identity = new ClaimsIdentity(claims, "CookieSekolah");
+                var principal = new ClaimsPrincipal(Identity);
 
                 await HttpContext.SignInAsync("CookieSekolah", principal, new AuthenticationProperties
                 {
@@ -165,7 +165,7 @@ namespace Latihan2.Controllers
                 });
 
                 // Redirect ke dashboard guru di Latihan2
-                return RedirectToAction("Pageguru", "PageGuru");
+                return RedirectToAction("Pageguru", "Pageguru");
             }
             catch (Exception ex)
             {

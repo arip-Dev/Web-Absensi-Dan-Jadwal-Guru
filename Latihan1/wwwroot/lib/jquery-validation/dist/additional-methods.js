@@ -983,11 +983,11 @@ $.validator.addMethod( "netmask", function( value, element ) {
 }, "Please enter a valid netmask." );
 
 /*
- * The NIE (Número de Identificación de Extranjero) is a Spanish tax identification number assigned by the Spanish
+ * The NIE (Número de identificación de Extranjero) is a Spanish tax identification number assigned by the Spanish
  * authorities to any foreigner.
  *
- * The NIE is the equivalent of a Spaniards Número de Identificación Fiscal (NIF) which serves as a fiscal
- * identification number. The CIF number (Certificado de Identificación Fiscal) is equivalent to the NIF, but applies to
+ * The NIE is the equivalent of a Spaniards Número de identificación Fiscal (NIF) which serves as a fiscal
+ * identification number. The CIF number (Certificado de identificación Fiscal) is equivalent to the NIF, but applies to
  * companies rather than individuals. The NIE consists of an 'X' or 'Y' followed by 7 or 8 digits then another letter.
  */
 $.validator.addMethod( "nieES", function( value, element ) {
@@ -1023,7 +1023,7 @@ $.validator.addMethod( "nieES", function( value, element ) {
 }, "Please specify a valid NIE number." );
 
 /*
- * The Número de Identificación Fiscal ( NIF ) is the way tax identification used in Spain for individuals
+ * The Número de identificación Fiscal ( NIF ) is the way tax identification used in Spain for individuals
  */
 $.validator.addMethod( "nifES", function( value, element ) {
 	"use strict";
@@ -1054,7 +1054,7 @@ $.validator.addMethod( "nifES", function( value, element ) {
 }, "Please specify a valid NIF number." );
 
 /*
- * Numer identyfikacji podatkowej ( NIP ) is the way tax identification used in Poland for companies
+ * Numer identyfikacji podatkowej ( nip ) is the way tax identification used in Poland for companies
  */
 $.validator.addMethod( "nipPL", function( value ) {
 	"use strict";
@@ -1074,11 +1074,11 @@ $.validator.addMethod( "nipPL", function( value ) {
 	var intControlNr = ( int2 === 10 ) ? 0 : int2;
 
 	return ( intControlNr === parseInt( value[ 9 ], 10 ) );
-}, "Please specify a valid NIP number." );
+}, "Please specify a valid nip number." );
 
 /**
  * Created for project jquery-validation.
- * @Description Brazillian PIS or NIS number (Número de Identificação Social Pis ou Pasep) is the equivalent of a
+ * @Description Brazillian PIS or NIS number (Número de identificação Social Pis ou Pasep) is the equivalent of a
  * Brazilian tax registration number NIS of PIS numbers have 11 digits in total: 10 numbers followed by 1 check numbers
  * that are being used for validation.
  * @copyright (c) 21/08/2018 13:14, Cleiton da Silva Mendonça
@@ -1451,7 +1451,7 @@ $.validator.addMethod( "url2", function( value, element ) {
  *
  * Works with all kind of text inputs.
  *
- * @example <input type="text" size="20" name="VehicleID" class="{required:true,vinUS:true}" />
+ * @example <input type="text" size="20" name="Vehicleid" class="{required:true,vinUS:true}" />
  * @desc Declares a required input element whose value must be a valid vehicle identification number.
  *
  * @name $.validator.methods.vinUS

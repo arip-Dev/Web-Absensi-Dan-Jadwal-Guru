@@ -1,6 +1,6 @@
 ﻿using System.Data;
 using Dapper;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using Latihan3.Models;
 using Microsoft.Extensions.Configuration;
 
@@ -19,45 +19,49 @@ namespace Latihan3.Services
             }
         }
 
-        // Properti koneksi utama (digunakan di seluruh method)
-        private IDbConnection Connection => new SqlConnection(_connectionString!);
+        // PERBAIKAN 1: Gunakan NpgsqlConnection langsung agar OpenAsync bisa digunakan
+        private NpgsqlConnection Connection => new NpgsqlConnection(_connectionString!);
 
         // ================= FITUR DAFTAR ABSENSI (PAGED) =================
 
-        public async Task<IEnumerable<AbsensiGuru>> GetPagedAbsensiAsync(int page, int pageSize)
+        public async Task<IEnumerable<absensiguru>> GetPagedAbsensiAsync(int page, int pageSize)
         {
             int offset = (page - 1) * pageSize;
 
             const string sql = @"
-                SELECT a.*, g.Nama AS NamaGuru, g.NIP 
-                FROM dbo.AbsensiGuru a
-                JOIN dbo.Guru g ON g.Id = a.Id
-                ORDER BY a.Tanggal DESC 
+                SELECT a.*, g.nama AS namaguru, g.nip 
+                FROM absensiguru a
+                JOIN guru g ON g.id = a.id
+                ORDER BY a.tanggal DESC 
                 OFFSET @offset ROWS 
                 FETCH NEXT @pageSize ROWS ONLY";
 
-            using var db = Connection;
-            return await db.QueryAsync<AbsensiGuru>(sql, new { offset, pageSize });
+            await using var db = Connection;
+            await db.OpenAsync(); // PERBAIKAN 2: Wajib ada
+            return await db.QueryAsync<absensiguru>(sql, new { offset, pageSize });
         }
 
         public async Task<int> GetTotalAbsensiCountAsync()
         {
-            const string sql = "SELECT COUNT(*) FROM dbo.AbsensiGuru";
-            using var db = Connection;
+            const string sql = "SELECT COUNT(*) FROM absensiguru";
+            await using var db = Connection;
+            await db.OpenAsync();
             return await db.ExecuteScalarAsync<int>(sql);
         }
 
-        public async Task<AbsensiGuru?> GetAbsensiByIdAsync(int id)
+        public async Task<absensiguru?> GetAbsensiByidAsync(int id)
         {
-            using var db = Connection;
-            string sql = @"
-                SELECT a.AbsensiId, a.Id, a.Tanggal, a.Status, a.Keterangan,
-                       g.Nama AS NamaGuru, g.NIP
-                FROM AbsensiGuru a
-                LEFT JOIN Guru g ON g.Id = a.Id
-                WHERE a.AbsensiId = @id";
+            await using var db = Connection;
+            await db.OpenAsync();
 
-            return await db.QueryFirstOrDefaultAsync<AbsensiGuru>(sql, new { id });
+            string sql = @"
+                SELECT a.absensiid, a.id, a.tanggal, a.status, a.keterangan,
+                       g.nama AS namaguru, g.nip
+                FROM absensiguru a
+                LEFT JOIN guru g ON g.id = a.id
+                WHERE a.absensiid = @id";
+
+            return await db.QueryFirstOrDefaultAsync<absensiguru>(sql, new { id });
         }
 
         // ================= FITUR REKAPITULASI (PAGED) =================
@@ -67,137 +71,152 @@ namespace Latihan3.Services
             int offset = (page - 1) * pageSize;
             string search = $"%{keyword}%";
 
+            // PERBAIKAN 3: Ganti YEAR() dan MONTH() menjadi sintaks PostgreSQL (EXTRACT)
+            // Serta gunakan ILIKE untuk pencarian agar tidak case-sensitive
             const string sql = @"
                 SELECT 
-                    g.Nama AS NamaGuru, 
-                    g.NIP,
-                    SUM(CASE WHEN a.Status = 'Hadir' THEN 1 ELSE 0 END) AS Hadir,
-                    SUM(CASE WHEN a.Status = 'Sakit' THEN 1 ELSE 0 END) AS Sakit,
-                    SUM(CASE WHEN a.Status = 'Izin' THEN 1 ELSE 0 END) AS Izin,
-                    COUNT(a.AbsensiId) AS Total
-                FROM dbo.Guru g
-                LEFT JOIN dbo.AbsensiGuru a ON g.Id = a.Id 
-                    AND YEAR(a.Tanggal) = @targetTahun
-                    AND (@targetBulan = 0 OR MONTH(a.Tanggal) = @targetBulan)
-                WHERE (@keyword IS NULL OR g.Nama LIKE @search OR g.NIP LIKE @search)
-                GROUP BY g.Nama, g.NIP
-                ORDER BY g.Nama ASC
+                    g.nama AS namaguru, 
+                    g.nip,
+                    SUM(CASE WHEN a.status = 'Hadir' THEN 1 ELSE 0 END) AS Hadir,
+                    SUM(CASE WHEN a.status = 'Sakit' THEN 1 ELSE 0 END) AS Sakit,
+                    SUM(CASE WHEN a.status = 'Izin' THEN 1 ELSE 0 END) AS Izin,
+                    COUNT(a.absensiid) AS Total
+                FROM guru g
+                LEFT JOIN absensiguru a ON g.id = a.id 
+                    AND EXTRACT(YEAR FROM a.tanggal) = @targetTahun
+                    AND (@targetBulan = 0 OR EXTRACT(MONTH FROM a.tanggal) = @targetBulan)
+                WHERE (@keyword IS NULL OR g.nama ILIKE @search OR g.nip ILIKE @search)
+                GROUP BY g.nama, g.nip
+                ORDER BY g.nama ASC
                 OFFSET @offset ROWS 
                 FETCH NEXT @pageSize ROWS ONLY";
 
-            using var db = Connection;
+            await using var db = Connection;
+            await db.OpenAsync();
             return await db.QueryAsync<RekapAbsensiVm>(sql, new { targetBulan = bulan, targetTahun = tahun, search, keyword, offset, pageSize });
         }
 
-        public async Task<int> GetTotalGuruCountAsync(string? keyword = null)
+        public async Task<int> GetTotalguruCountAsync(string? keyword = null)
         {
             string search = $"%{keyword}%";
-            const string sql = "SELECT COUNT(*) FROM dbo.Guru WHERE (@keyword IS NULL OR Nama LIKE @search OR NIP LIKE @search)";
-            using var db = Connection;
+            const string sql = "SELECT COUNT(*) FROM guru WHERE (@keyword IS NULL OR nama ILIKE @search OR nip ILIKE @search)";
+            await using var db = Connection;
+            await db.OpenAsync();
             return await db.ExecuteScalarAsync<int>(sql, new { keyword, search });
         }
 
         // ================= OPERATIONS (CRUD) =================
 
-        public async Task<int> InsertAbsensiAsync(AbsensiGuru abs)
+        public async Task<int> InsertAbsensiAsync(absensiguru abs)
         {
-            using var db = Connection;
-            string sql = @"INSERT INTO AbsensiGuru (Id, Tanggal, Status, Keterangan) 
-                           VALUES (@Id, @Tanggal, @Status, @Keterangan);
-                           SELECT CAST(SCOPE_IDENTITY() AS INT);";
+            await using var db = Connection;
+            await db.OpenAsync();
+            // PERBAIKAN 4: Menghilangkan titik koma (;) yang salah tempat sebelum RETURNING
+            string sql = @"INSERT INTO absensiguru (id, tanggal, status, keterangan) 
+                           VALUES (@id, @tanggal, @status, @keterangan)
+                           RETURNING absensiid;";
             return await db.ExecuteScalarAsync<int>(sql, abs);
         }
 
-        public async Task UpdateAbsensiAsync(AbsensiGuru abs)
+        public async Task UpdateAbsensiAsync(absensiguru abs)
         {
-            using var db = Connection;
-            string sql = @"UPDATE AbsensiGuru SET Id=@Id, Tanggal=@Tanggal, Status=@Status, Keterangan=@Keterangan WHERE AbsensiId=@AbsensiId";
-            await db.ExecuteAsync(sql, abs);
+            await using var db = Connection;
+            await db.OpenAsync();
+            string sql = @"UPDATE absensiguru SET id=@id, tanggal=@tanggal, status=@status, keterangan=@keterangan WHERE absensiid=@absensiid";
+            await db.ExecuteScalarAsync<int>(sql, abs);
         }
 
         public async Task DeleteAbsensiAsync(int id)
         {
-            using var db = Connection;
-            string sql = "DELETE FROM AbsensiGuru WHERE AbsensiId = @id";
-            await db.ExecuteAsync(sql, new { id });
+            await using var db = Connection;
+            await db.OpenAsync();
+            string sql = "DELETE FROM absensiguru WHERE absensiid = @id";
+            await db.ExecuteScalarAsync<int>(sql, new { id });
         }
 
         // ================= SEARCH & SELECT2 HELPERS (YANG BARU) =================
 
         // 1. Method Search (Mengambil data sedikit demi sedikit / Paging via Select2)
-        public async Task<IEnumerable<Guru>> SearchGuruByNameAsync(string keyword)
+        public async Task<IEnumerable<guru>> SearchguruByNameAsync(string keyword)
         {
-            // Perbaikan: Gunakan properti 'Connection' yang sudah ada, bukan 'CreateConnection()'
-            using var db = Connection;
+            await using var db = Connection;
+            await db.OpenAsync();
 
-            // Mengambil 20 data teratas saja agar ringan
+            // PERBAIKAN 5: Mengubah TOP 20 menjadi LIMIT 20 (Standar PostgreSQL)
             string sql = @"
-                SELECT TOP 20 Id, Nama, NIP 
-                FROM Guru 
-                WHERE Nama LIKE @Search OR NIP LIKE @Search
-                ORDER BY Nama";
+                SELECT id, nama, nip 
+                FROM guru 
+                WHERE nama ILIKE @Search OR nip ILIKE @Search
+                ORDER BY nama
+                LIMIT 20";
 
-            return await db.QueryAsync<Guru>(sql, new { Search = $"%{keyword}%" });
+            return await db.QueryAsync<guru>(sql, new { Search = $"%{keyword}%" });
         }
 
-        // 2. Method Get By ID (Dipakai saat Validasi Error di Controller)
-        public async Task<Guru?> GetGuruByIdAsync(int id)
+        // 2. Method Get By id (Dipakai saat Validasi Error di Controller)
+        public async Task<guru?> GetGuruByIdAsync(int id)
         {
-            using var db = Connection;
-            string sql = "SELECT * FROM Guru WHERE Id = @Id";
-            return await db.QuerySingleOrDefaultAsync<Guru>(sql, new { Id = id });
+            await using var db = Connection;
+            await db.OpenAsync();
+            string sql = "SELECT * FROM guru WHERE id = @id";
+            return await db.QuerySingleOrDefaultAsync<guru>(sql, new { id = id });
         }
 
         // ================= HELPERS LAIN & AUTH =================
 
-        // Class internal kecil untuk dropdown legacy (opsional, jika masih dipakai di fitur lain)
         public class GuruOption
         {
             public int Id { get; set; }
             public string Nama { get; set; } = "";
         }
 
-        public async Task<IEnumerable<GuruOption>> GetGuruListAsync()
+        public async Task<IEnumerable<GuruOption>> GetguruListAsync()
         {
-            using var db = Connection;
-            string sql = "SELECT Id, Nama FROM Guru ORDER BY Nama";
+            await using var db = Connection;
+            await db.OpenAsync();
+            string sql = "SELECT id, nama FROM guru ORDER BY nama";
             return await db.QueryAsync<GuruOption>(sql);
         }
 
-        public async Task<int?> GetGuruIdByNipAsync(string nip)
+        public async Task<int?> GetguruidBynipAsync(string nip)
         {
-            using var db = Connection;
-            string sql = "SELECT Id FROM Guru WHERE NIP = @nip";
+            await using var db = Connection;
+            await db.OpenAsync();
+            string sql = "SELECT id FROM guru WHERE nip = @nip";
             return await db.ExecuteScalarAsync<int?>(sql, new { nip });
         }
 
-        public async Task<string?> GetGuruNamaByIdAsync(int id)
+        public async Task<string?> GetgurunamaByidAsync(int id)
         {
-            using var db = Connection;
-            string sql = "SELECT Nama FROM Guru WHERE Id = @id";
+            await using var db = Connection;
+            await db.OpenAsync();
+            string sql = "SELECT nama FROM guru WHERE id = @id";
             return await db.ExecuteScalarAsync<string?>(sql, new { id });
         }
 
-        public async Task<bool> IsAlreadyPresentAsync(int guruId, DateTime date)
+        public async Task<bool> IsAlreadyPresentAsync(int guruid, DateTime date)
         {
-            using var db = Connection;
-            string sql = "SELECT COUNT(1) FROM AbsensiGuru WHERE Id = @guruId AND CAST(Tanggal AS DATE) = CAST(@date AS DATE)";
-            var count = await db.ExecuteScalarAsync<int>(sql, new { guruId, date });
+            await using var db = Connection;
+            await db.OpenAsync();
+            string sql = "SELECT COUNT(1) FROM absensiguru WHERE id = @guruid AND CAST(tanggal AS DATE) = CAST(@date AS DATE)";
+            var count = await db.ExecuteScalarAsync<int>(sql, new { guruid, date });
             return count > 0;
         }
 
-        public async Task<string?> GetPasswordHashByUsernameAsync(string username)
+        public async Task<string?> GetpasswordhashByUsernameAsync(string username)
         {
-            using var db = Connection;
-            string sql = "SELECT PasswordHash FROM Users WHERE Username = @u";
+            await using var db = Connection;
+            await db.OpenAsync();
+            string sql = "SELECT passwordhash FROM users WHERE username = @u";
             return await db.QueryFirstOrDefaultAsync<string>(sql, new { u = username });
         }
 
         public async Task<string?> GetUserRoleAsync(string username)
         {
-            using var db = Connection;
+            await using var db = Connection;
+            await db.OpenAsync();
             return await db.QueryFirstOrDefaultAsync<string>(
-                "SELECT Role FROM Users WHERE Username = @u", new { u = username });
+                "SELECT role FROM users WHERE username = @u", new { u = username });
         }
     }
 }

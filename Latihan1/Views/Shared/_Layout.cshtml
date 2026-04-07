@@ -6,8 +6,8 @@
     string? curAction = ViewContext.RouteData.Values["action"]?.ToString();
 
     // helper class item
-    Func<bool, string> itemClass = (bool isActive) =>
-        isActive
+    Func<bool, string> itemClass = (bool isactive) =>
+        isactive
             ? "flex items-center gap-3 rounded-2xl px-4 py-3 bg-blue-600 text-white shadow-md shadow-blue-200"
             : "flex items-center gap-3 rounded-2xl px-4 py-3 text-slate-600 hover:bg-slate-50";
 
@@ -28,24 +28,24 @@
         );
 
     bool activeSubjects =
-    (string.Equals(curController, "Mapel", StringComparison.OrdinalIgnoreCase) &&
+    (string.Equals(curController, "mapel", StringComparison.OrdinalIgnoreCase) &&
      string.Equals(curAction, "Index", StringComparison.OrdinalIgnoreCase))
     ||
-    (string.Equals(curController, "Mapel", StringComparison.OrdinalIgnoreCase) &&
+    (string.Equals(curController, "mapel", StringComparison.OrdinalIgnoreCase) &&
      string.Equals(curAction, "Index", StringComparison.OrdinalIgnoreCase)); // kalau masih mau dukung halaman lama
 
 
-    bool activeKelas =
-        string.Equals(curController, "Kelas", StringComparison.OrdinalIgnoreCase) &&
+    bool activekelas =
+        string.Equals(curController, "kelas", StringComparison.OrdinalIgnoreCase) &&
         string.Equals(curAction, "Index", StringComparison.OrdinalIgnoreCase);
 
     bool activeSchedules =
-        string.Equals(curController, "Home", StringComparison.OrdinalIgnoreCase) &&
-        string.Equals(curAction, "BuatJadwal", StringComparison.OrdinalIgnoreCase);
+        string.Equals(curController, "BuatJadwal", StringComparison.OrdinalIgnoreCase) &&
+        string.Equals(curAction, "Buatjadwal", StringComparison.OrdinalIgnoreCase);
 
     bool activeReports =
-        string.Equals(curController, "Home", StringComparison.OrdinalIgnoreCase) &&
-        string.Equals(curAction, "Laporan", StringComparison.OrdinalIgnoreCase);
+        string.Equals(curController, "Reports", StringComparison.OrdinalIgnoreCase) &&
+        string.Equals(curAction, "Index", StringComparison.OrdinalIgnoreCase);
 }
 
 <!DOCTYPE html>
@@ -67,7 +67,7 @@
         </svg>
     </button>
 
-    @* SIDEBAR *@
+    @* SidEBAR *@
     @if (!hideSidebar)
     {
         <aside id="sidebar"
@@ -111,28 +111,28 @@
                         <path d="M12 12a5 5 0 100-10 5 5 0 000 10z" />
                         <path d="M4 22a8 8 0 0116 0H4z" />
                     </svg>
-                    <span class="font-medium nav-label">Data Guru</span>
+                    <span class="font-medium nav-label">Data guru</span>
                 </a>
 
-                <a asp-controller="Mapel" asp-action="Index" class="@itemClass(activeSubjects)">
+                <a asp-controller="mapel" asp-action="Index" class="@itemClass(activeSubjects)">
                     <svg xmlns="http://www.w3.org/2000/svg" class="@iconWrap(activeSubjects)" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M5 4h14v2H5zM5 9h14v2H5zM5 14h14v2H5zM5 19h14v2H5z" />
                     </svg>
                     <span class="font-medium nav-label">Mata Pelajaran</span>
                 </a>
 
-                <a asp-controller="Kelas" asp-action="Index" class="@itemClass(activeKelas)">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="@iconWrap(activeKelas)" viewBox="0 0 500 500"fill="currentColor">
+                <a asp-controller="kelas" asp-action="Index" class="@itemClass(activekelas)">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="@iconWrap(activekelas)" viewBox="0 0 500 500"fill="currentColor">
                         <path d="M32 64C32 28.7 60.7 0 96 0L352 0c35.3 0 64 28.7 64 64l0 384c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 512c-17.7 0-32-14.3-32-32s14.3-32 32-32L32 64zM320 288a32 32 0 1 0 0-64 32 32 0 1 0 0 64z" />
                         </svg>
-                    <span class="font-medium nav-label">Kelas</span>
+                    <span class="font-medium nav-label">kelas</span>
                 </a>
 
-                <a asp-controller="BuatJadwal" asp-action="BuatJadwal" class="@itemClass(activeSchedules)">
+                <a asp-controller="Buatjadwal" asp-action="Buatjadwal" class="@itemClass(activeSchedules)">
                     <svg xmlns="http://www.w3.org/2000/svg" class="@iconWrap(activeSchedules)" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M7 2a1 1 0 011 1v1h8V3a1 1 0 112 0v1h2a1 1 0 011 1v3H2V5a1 1 0 011-1h2V3a1 1 0 112 0v1zm15 7v10a2 2 0 01-2 2H4a2 2 0 01-2-2V9h20z" />
                     </svg>
-                    <span class="font-medium nav-label">Buat Jadwal</span>
+                    <span class="font-medium nav-label">Buat jadwal</span>
                 </a>
 
                 <a asp-controller="Reports" asp-action="Laporan" class="@itemClass(activeReports)">

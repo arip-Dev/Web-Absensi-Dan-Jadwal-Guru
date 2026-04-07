@@ -35,7 +35,7 @@ namespace Latihan1.Controllers
             var rows = await _db.GetAllJadwalAsync((int?)null);
 
             var sb = new StringBuilder();
-            sb.AppendLine("Hari,Waktu Mulai,Waktu Selesai,Mapel,Guru,Kelas/Ruangan");
+            sb.AppendLine("hari,Waktu mulai,Waktu selesai,mapel,guru,kelas/ruangan");
 
             string Day(int d) => new[] { "-", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu" }[Math.Clamp(d, 0, 7)];
 
@@ -75,7 +75,7 @@ namespace Latihan1.Controllers
 
             string Day(int d) => new[] { "-", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu" }[Math.Clamp(d, 0, 7)];
 
-            var title = $"Laporan Jadwal • {DateTime.Now:dd MMM yyyy}";
+            var title = $"Laporan jadwal • {DateTime.Now:dd MMM yyyy}";
 
             var doc = Document.Create(container =>
             {
@@ -95,21 +95,21 @@ namespace Latihan1.Controllers
                         // kolom
                         table.ColumnsDefinition(cols =>
                         {
-                            cols.RelativeColumn(1);   // Hari
+                            cols.RelativeColumn(1);   // hari
                             cols.RelativeColumn(1.2f);// Waktu
-                            cols.RelativeColumn(1.5f);// Mapel
-                            cols.RelativeColumn(1.8f);// Guru
-                            cols.RelativeColumn(1.4f);// Kelas/Ruangan
+                            cols.RelativeColumn(1.5f);// mapel
+                            cols.RelativeColumn(1.8f);// guru
+                            cols.RelativeColumn(1.4f);// kelas/ruangan
                         });
 
                         // header
                         table.Header(h =>
                         {
-                            h.Cell().Element(CellHeader).Text("Hari");
+                            h.Cell().Element(CellHeader).Text("hari");
                             h.Cell().Element(CellHeader).Text("Waktu");
-                            h.Cell().Element(CellHeader).Text("Mapel");
-                            h.Cell().Element(CellHeader).Text("Guru");
-                            h.Cell().Element(CellHeader).Text("Kelas / Ruangan");
+                            h.Cell().Element(CellHeader).Text("mapel");
+                            h.Cell().Element(CellHeader).Text("guru");
+                            h.Cell().Element(CellHeader).Text("kelas / ruangan");
 
                             static IContainer CellHeader(IContainer c) =>
                                 c.DefaultTextStyle(x => x.SemiBold())
@@ -124,7 +124,7 @@ namespace Latihan1.Controllers
                             table.Cell().Element(Cell).Text($"{r.Mulai:hh\\:mm} - {r.Selesai:hh\\:mm}");
                             table.Cell().Element(Cell).Text(r.Mapel);
                             table.Cell().Element(Cell).Text(r.GuruNama);
-                            table.Cell().Element(Cell).Text($"{r.KelasNama}{(string.IsNullOrWhiteSpace(r.Ruangan) ? "" : $" / {r.Ruangan}")}");
+                            table.Cell().Element(Cell).Text($"{r.KelasNama} {(string.IsNullOrWhiteSpace(r.Ruangan) ? "" : $" / {r.Ruangan}")}");
 
                             static IContainer Cell(IContainer c) =>
                                 c.PaddingVertical(6).PaddingHorizontal(8)

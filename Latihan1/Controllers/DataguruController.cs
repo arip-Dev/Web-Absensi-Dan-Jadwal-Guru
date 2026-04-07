@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Npgsql; // Wajib untuk menangkap exception database PostgreSQL
 using QRCoder; // Wajib ada untuk generate QR
 using System;
 using System.Linq;
@@ -77,16 +78,22 @@ namespace Latihan1.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            var mapels = await _db.GetAllMapelAsync();
-            ViewBag.MapelList = new SelectList(mapels, "Id", "Nama");
+            // FIX 1: Pastikan mapels tidak null (gunakan ?? empty list)
+            var mapels = await _db.GetAllMapelAsync() ?? new List<mapelModel>();
 
-            var m = new GuruModel
+            // Di sini selectedmapelids belum ada, jadi kita buat array kosong
+            var selectedmapelids = Array.Empty<int>();
+
+            // Masukkan ke ViewBag
+            ViewBag.mapelList = new SelectList(mapels, "id", "nama", selectedmapelids);
+
+            var m = new guruModel
             {
-                IsActive = true,
-                MaxWeeklyLoad = 24,
-                MaxDailyLoad = 6,
-                MaxConsecutiveSlots = 3,
-                MapelIds = Array.Empty<int>()
+                isactive = true,
+                maxweeklyload = 24,
+                maxdailyload = 6,
+                maxconsecutiveslots = 3,
+                mapelids = selectedmapelids // Inisialisasi model dengan array kosong
             };
 
             return View("~/Views/Adminpage/Dataguru/Create.cshtml", m);
@@ -95,80 +102,79 @@ namespace Latihan1.Controllers
         // ================= CREATE (POST) =================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(GuruModel m)
+        public async Task<IActionResult> Create(guruModel m)
         {
-            var selectedMapelIds = m.MapelIds ?? Array.Empty<int>();
+            var selectedmapelids = m.mapelids ?? Array.Empty<int>();
 
-            // --- VALIDASI NIP UNIK ---
-            if (!string.IsNullOrWhiteSpace(m.NIP))
+            // --- VALIDASI nip UNIK ---
+            if (!string.IsNullOrWhiteSpace(m.nip))
             {
-                bool nipExists = await _db.IsNipExistsAsync(m.NIP);
+                bool nipExists = await _db.IsnipExistsAsync(m.nip);
                 if (nipExists)
                 {
-                    ModelState.AddModelError("NIP", "NIP ini sudah digunakan oleh guru lain.");
+                    ModelState.AddModelError("nip", "nip ini sudah digunakan oleh guru lain.");
                 }
             }
 
-            // Validasi Mapel
-            if (selectedMapelIds.Length == 0)
+            // Validasi mapel
+            if (selectedmapelids.Length == 0)
             {
-                ModelState.AddModelError("MapelIds", "Minimal pilih satu mata pelajaran.");
+                ModelState.AddModelError("mapelids", "Minimal pilih satu mata pelajaran.");
             }
-            // 2. LOGIKA BARU: Validasi Email Unik agar tidak crash ke DB
-            if (!string.IsNullOrWhiteSpace(m.Email))
+
+            // LOGIKA BARU: Validasi email Unik agar tidak crash ke DB
+            if (!string.IsNullOrWhiteSpace(m.email))
             {
-                // Pastikan Anda sudah membuat method IsEmailExistsAsync di DapperDb
-                bool isExist = await _db.IsEmailExistsAsync(m.Email);
+                bool isExist = await _db.IsEmailExistsAsync(m.email);
                 if (isExist)
                 {
                     // Pesan ini yang akan muncul sebagai alert di bawah input email
-                    ModelState.AddModelError("Email", "Email ini sudah digunakan oleh guru lain.");
+                    ModelState.AddModelError("email", "email ini sudah digunakan oleh guru lain.");
                 }
             }
 
             if (!ModelState.IsValid)
             {
                 var mapels = await _db.GetAllMapelAsync();
-                ViewBag.MapelList = new SelectList(mapels, "Id", "Nama", selectedMapelIds);
+                ViewBag.mapelList = new SelectList(mapels, "id", "nama", selectedmapelids);
                 return View("~/Views/Adminpage/Dataguru/Create.cshtml", m);
             }
 
-            // Mapel utama (untuk backward compatibility kolom MapelId)
-            m.MapelId = selectedMapelIds[0];
+            // mapel utama (untuk backward compatibility kolom mapelid)
+            m.mapelid = selectedmapelids[0];
 
             // --- GENERATE QR CODE ---
-            // Kita generate QR berdasarkan NIP. Pastikan NIP terisi.
-            if (!string.IsNullOrEmpty(m.NIP))
+            // Kita generate QR berdasarkan nip. Pastikan nip terisi.
+            if (!string.IsNullOrEmpty(m.nip))
             {
-                m.QRCodeBase64 = GenerateQrCode(m.NIP);
+                m.qrcodebase64 = GenerateQrCode(m.nip);
             }
 
             // 1) Simpan guru
-            // NOTE: Pastikan DapperDb.CreateGuruAsync sudah dimodifikasi untuk menyimpan m.QRCodeBase64!
-            var guruId = await _db.CreateGuruAsync(m);
+            var guruid = await _db.CreateGuruAsync(m);
 
-            // 2) Simpan relasi ke tabel GuruMapel
-            await _db.SaveGuruMapelAsync(guruId, selectedMapelIds);
+            // 2) Simpan relasi ke tabel gurumapel
+            await _db.SaveGuruMapelAsync(guruid, selectedmapelids);
 
             // 3) Siapkan akun user (jika ada email)
-            var username = m.Email?.Trim();
+            var username = m.email?.Trim();
             if (!string.IsNullOrWhiteSpace(username))
             {
-                var existingUserId = await _db.GetUserIdByUsernameAsync(username);
+                var existingUserid = await _db.GetUserIdByUsernameAsync(username);
 
-                if (existingUserId is null)
+                if (existingUserid is null)
                 {
                     const string defaultPassword = "guru123";
                     var hash = _hasher.HashPassword(username!, defaultPassword);
-                    await _db.CreateUserAsync(username!, hash, role: "Guru", guruId: guruId);
+                    await _db.CreateUserAsync(username!, hash, role: "Guru", guruId: guruid);
                 }
-                else if (existingUserId is int userId)
+                else if (existingUserid is int userid)
                 {
-                    await _db.UpdateUserGuruIdAsync(userId, guruId);
+                    await _db.UpdateUserGuruIdAsync(userid, guruid);
                 }
             }
 
-            TempData["ok"] = $"Guru '{m.Nama}' berhasil ditambahkan (QR Code Generated).";
+            TempData["ok"] = $"Guru '{m.nama}' berhasil ditambahkan (QR Code Generated).";
             return RedirectToAction(nameof(Teacher_data));
         }
 
@@ -176,21 +182,18 @@ namespace Latihan1.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            // Method ini memanggil GetGuruByIdAsync yang sudah kita update 
-            // untuk menghitung JamMengajar dari subquery tabel Jadwal.
             var m = await _db.GetGuruForEditAsync(id);
             if (m is null) return NotFound();
 
-            var mapelIdsEnum = await _db.GetMapelIdsForGuruAsync(id);
-            var mapelIds = mapelIdsEnum ?? Enumerable.Empty<int>();
-            m.MapelIds = mapelIds.ToArray();
+            var mapelidsEnum = await _db.GetMapelIdsForGuruAsync(id);
+            var mapelids = mapelidsEnum ?? Enumerable.Empty<int>();
+            m.mapelids = mapelids.ToArray();
 
             var locked = (await _db.GetLockedMapelIdsForGuruAsync(id)).ToArray();
-            ViewBag.LockedMapelIds = locked;
+            ViewBag.Lockedmapelids = locked;
 
             var mapels = await _db.GetAllMapelAsync();
-            // Menggunakan SelectList untuk keperluan dropdown (jika masih diperlukan)
-            ViewBag.MapelList = new SelectList(mapels, "Id", "Nama");
+            ViewBag.mapelList = new SelectList(mapels, "id", "nama");
 
             return View("~/Views/Adminpage/Dataguru/Edit.cshtml", m);
         }
@@ -198,65 +201,63 @@ namespace Latihan1.Controllers
         // ================= EDIT (POST) =================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(GuruModel m)
+        public async Task<IActionResult> Edit(guruModel m)
         {
-            var selectedMapelIds = m.MapelIds ?? Array.Empty<int>();
-            var locked = (await _db.GetLockedMapelIdsForGuruAsync(m.Id)).ToArray();
-            var removedLocked = locked.Except(selectedMapelIds).ToArray();
+            var selectedmapelids = m.mapelids ?? Array.Empty<int>();
+            var locked = (await _db.GetLockedMapelIdsForGuruAsync(m.id)).ToArray();
+            var removedLocked = locked.Except(selectedmapelids).ToArray();
 
-            // --- VALIDASI NIP UNIK ---
-            if (!string.IsNullOrWhiteSpace(m.NIP))
+            // --- VALIDASI nip UNIK ---
+            if (!string.IsNullOrWhiteSpace(m.nip))
             {
-                bool nipExists = await _db.IsNipExistsAsync(m.NIP, m.Id);
+                bool nipExists = await _db.IsnipExistsAsync(m.nip, m.id);
                 if (nipExists)
                 {
-                    ModelState.AddModelError("NIP", "NIP sudah terdaftar pada guru lain.");
+                    ModelState.AddModelError("nip", "nip sudah terdaftar pada guru lain.");
                 }
             }
 
-            // Validasi Email Unik (Kecuali untuk ID dirinya sendiri)
-            if (!string.IsNullOrWhiteSpace(m.Email))
+            // Validasi email Unik (Kecuali untuk id dirinya sendiri)
+            if (!string.IsNullOrWhiteSpace(m.email))
             {
-                bool emailExists = await _db.IsEmailExistsAsync(m.Email, m.Id);
+                bool emailExists = await _db.IsEmailExistsAsync(m.email, m.id);
                 if (emailExists)
                 {
-                    ModelState.AddModelError("Email", "Email ini sudah digunakan oleh guru lain.");
+                    ModelState.AddModelError("email", "email ini sudah digunakan oleh guru lain.");
                 }
             }
 
             if (removedLocked.Any())
             {
-                ModelState.AddModelError("MapelIds", "Tidak boleh menghapus mata pelajaran yang sudah dipakai di jadwal.");
+                ModelState.AddModelError("mapelids", "Tidak boleh menghapus mata pelajaran yang sudah dipakai di jadwal.");
             }
-            if (selectedMapelIds.Length == 0)
+            if (selectedmapelids.Length == 0)
             {
-                ModelState.AddModelError("MapelIds", "Minimal pilih satu mata pelajaran.");
+                ModelState.AddModelError("mapelids", "Minimal pilih satu mata pelajaran.");
             }
 
             if (!ModelState.IsValid)
             {
                 var mapels = await _db.GetAllMapelAsync();
-                ViewBag.MapelList = new SelectList(mapels, "Id", "Nama", selectedMapelIds);
-                ViewBag.LockedMapelIds = locked;
+                ViewBag.mapelList = new SelectList(mapels, "id", "nama", selectedmapelids);
+                ViewBag.Lockedmapelids = locked;
                 return View("~/Views/Adminpage/Dataguru/Edit.cshtml", m);
             }
 
-            selectedMapelIds = locked.Union(selectedMapelIds).Distinct().ToArray();
-            m.MapelIds = selectedMapelIds;
-            m.MapelId = selectedMapelIds[0];
+            selectedmapelids = locked.Union(selectedmapelids).Distinct().ToArray();
+            m.mapelids = selectedmapelids;
+            m.mapelid = selectedmapelids[0];
 
-            // --- RE-GENERATE QR CODE (Jika NIP berubah atau QR kosong) ---
-            if (!string.IsNullOrEmpty(m.NIP))
+            // --- RE-GENERATE QR CODE (Jika nip berubah atau QR kosong) ---
+            if (!string.IsNullOrEmpty(m.nip))
             {
-                // Generate ulang untuk memastikan QR sesuai dengan NIP terbaru
-                m.QRCodeBase64 = GenerateQrCode(m.NIP);
+                m.qrcodebase64 = GenerateQrCode(m.nip);
             }
 
-            // NOTE: Pastikan DapperDb.UpdateGuruAsync sudah dimodifikasi untuk menyimpan m.QRCodeBase64!
             await _db.UpdateGuruAsync(m);
 
-            await _db.DeleteGuruMapelAsync(m.Id);
-            await _db.SaveGuruMapelAsync(m.Id, selectedMapelIds);
+            await _db.DeleteGuruMapelAsync(m.id);
+            await _db.SaveGuruMapelAsync(m.id, selectedmapelids);
 
             TempData["ok"] = "Perubahan data guru disimpan.";
             return RedirectToAction(nameof(Teacher_data));
@@ -274,33 +275,23 @@ namespace Latihan1.Controllers
                 return RedirectToAction(nameof(Teacher_data));
             }
 
-            // 1. Cek Jadwal (Logic Bisnis: Guru yg punya jadwal tidak boleh dihapus)
+            // 1. Cek jadwal (Logic Bisnis: guru yg punya jadwal tidak boleh dihapus)
             if (await _db.GuruHasJadwalAsync(id))
             {
-                TempData["ErrGuruSchedule"] = $"Guru '{guru.Nama}' masih memiliki jadwal mengajar. Hapus jadwal terlebih dahulu.";
+                TempData["ErrguruSchedule"] = $"Guru '{guru.nama}' masih memiliki jadwal mengajar. Hapus jadwal terlebih dahulu.";
                 return RedirectToAction(nameof(Teacher_data));
             }
 
-            // 2. Hapus Data (Dibungkus Try-Catch untuk menangkap FK Constraint Absensi)
+            // 2. Hapus Data (Dibungkus Try-Catch untuk menangkap FK Constraint Absensi PostgreSQL)
             try
             {
-                // CATATAN: Tidak perlu panggil DeleteGuruMapelAsync terpisah lagi,
-                // karena sudah satu paket di dalam DeleteGuruAndDetachUsersAsync.
                 await _db.DeleteGuruAndDetachUsersAsync(id, deleteUser);
-
                 TempData["ok"] = "Data guru berhasil dihapus.";
             }
-            catch (Microsoft.Data.SqlClient.SqlException ex)
+            catch (PostgresException ex) when (ex.SqlState == "23503")
             {
-                // Error Number 547 = Conflict Foreign Key Constraint (Data dipakai di tabel lain)
-                if (ex.Number == 547)
-                {
-                    TempData["Err"] = $"Gagal menghapus: Guru '{guru.Nama}' tidak bisa dihapus karena datanya masih tercatat di Absensi. Silakan non-aktifkan guru ini jika data historis ingin dipertahankan.";
-                }
-                else
-                {
-                    TempData["Err"] = "Terjadi kesalahan database: " + ex.Message;
-                }
+                // SqlState 23503 = Foreign Key Constraint Violation
+                TempData["Err"] = $"Gagal menghapus: Guru '{guru.nama}' tidak bisa dihapus karena datanya masih tercatat di Absensi atau Relasi lain. Silakan non-aktifkan guru ini jika data historis ingin dipertahankan.";
             }
             catch (Exception ex)
             {

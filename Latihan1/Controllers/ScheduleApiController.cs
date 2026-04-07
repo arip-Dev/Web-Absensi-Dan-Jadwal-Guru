@@ -38,7 +38,7 @@ namespace Latihan1.Controllers
         // =======================
 
         [HttpGet("mapel")]
-        public async Task<IActionResult> GetMapel()
+        public async Task<IActionResult> Getmapel()
         {
             var mapel = await _db.GetDistinctMapelAsync();
             return Ok(mapel);
@@ -46,7 +46,7 @@ namespace Latihan1.Controllers
 
         // { id, tingkat, namaSingkat }
         [HttpGet("kelas")]
-        public async Task<IActionResult> GetKelas()
+        public async Task<IActionResult> Getkelas()
         {
             var kelas = await _db.GetKelasListAsync();
             var dto = kelas.Select(k => new { id = k.Id, tingkat = k.Tingkat, namaSingkat = k.Nama });
@@ -55,7 +55,7 @@ namespace Latihan1.Controllers
 
         // GET: /api/schedule/guru?mapel=Matematika
         [HttpGet("guru")]
-        public async Task<IActionResult> GetGuruByMapel([FromQuery] string mapel)
+        public async Task<IActionResult> GetguruBymapel([FromQuery] string mapel)
         {
             if (string.IsNullOrWhiteSpace(mapel))
                 return BadRequest("Parameter 'mapel' wajib.");
@@ -71,7 +71,7 @@ namespace Latihan1.Controllers
                     id = g.Id,
                     nama = g.Guru,
                     mapel = g.Mapel,
-                    maxWeeklyLoad = g.MaxWeeklyLoad,
+                    maxweeklyload = g.MaxWeeklyLoad,
                     currentLoadMinutes = minutes,
                     currentLoadHours = hours
                 };
@@ -82,8 +82,8 @@ namespace Latihan1.Controllers
 
         // Alias lama
         [HttpGet("guru-by-mapel")]
-        public Task<IActionResult> GetGuruByMapelAlias([FromQuery] string mapel)
-            => GetGuruByMapel(mapel);
+        public Task<IActionResult> GetguruBymapelAlias([FromQuery] string mapel)
+            => GetguruBymapel(mapel);
 
         // =======================
         // LIST
@@ -102,13 +102,13 @@ namespace Latihan1.Controllers
                 var dto = rows.Select(r => new
                 {
                     id = r.Id,
-                    guruId = r.GuruId,
+                    guruid = r.GuruId,
                     guru = r.GuruNama,
                     mapel = r.Mapel,
                     hari = r.Hari,                 // 1..7
                     mulai = ToHm(r.Mulai),
                     selesai = ToHm(r.Selesai),
-                    kelasId = r.KelasId,
+                    kelasid = r.KelasId,
                     kelas = r.KelasNama,
                     ruangan = r.Ruangan
                 });
@@ -132,9 +132,9 @@ namespace Latihan1.Controllers
         // =======================
 
         public record CreateReq(
-            int GuruId, string Mapel, int Hari,
-            string Mulai, string Selesai,
-            int KelasId, string? Ruangan
+            int guruid, string mapel, int hari,
+            string mulai, string selesai,
+            int kelasid, string? ruangan
         );
 
         private static bool TryParseTime(string s, out TimeSpan t)
@@ -145,21 +145,21 @@ namespace Latihan1.Controllers
         {
             if (req is null) return BadRequest(new { conflict = true, message = "Body kosong." });
 
-            if (!TryParseTime(req.Mulai, out var mulai) || !TryParseTime(req.Selesai, out var selesai))
+            if (!TryParseTime(req.mulai, out var mulai) || !TryParseTime(req.selesai, out var selesai))
                 return Ok(new { conflict = true, message = "Format waktu salah. Gunakan 'HH:mm'." });
 
-            // Cek 1: Bentrok Guru?
-            var conflictGuru = await _db.HasScheduleConflictAsync(req.GuruId, req.Hari, mulai, selesai, null);
-            if (conflictGuru)
+            // Cek 1: Bentrok guru?
+            var conflictguru = await _db.HasScheduleConflictAsync(req.guruid, req.hari, mulai, selesai, null);
+            if (conflictguru)
             {
-                return Ok(new { conflict = true, message = "Guru ini sudah mengajar di jam tersebut." });
+                return Ok(new { conflict = true, message = "guru ini sudah mengajar di jam tersebut." });
             }
 
-            // Cek 2: Bentrok Kelas? (TAMBAHAN)
-            var conflictKelas = await _db.HasClassScheduleConflictAsync(req.KelasId, req.Hari, mulai, selesai, null);
-            if (conflictKelas)
+            // Cek 2: Bentrok kelas? (TAMBAHAN)
+            var conflictkelas = await _db.HasClassScheduleConflictAsync(req.kelasid, req.hari, mulai, selesai, null);
+            if (conflictkelas)
             {
-                return Ok(new { conflict = true, message = "Kelas ini sudah ada jadwal pelajaran lain di jam tersebut." });
+                return Ok(new { conflict = true, message = "kelas ini sudah ada jadwal pelajaran lain di jam tersebut." });
             }
 
             return Ok(new { conflict = false });
@@ -170,56 +170,56 @@ namespace Latihan1.Controllers
         {
             if (req is null) return BadRequest("Body kosong.");
 
-            if (!TryParseTime(req.Mulai, out var mulai) || !TryParseTime(req.Selesai, out var selesai))
+            if (!TryParseTime(req.mulai, out var mulai) || !TryParseTime(req.selesai, out var selesai))
                 return BadRequest("Format waktu salah. Gunakan 'HH:mm' (mis. 07:00).");
 
-            if (string.CompareOrdinal(req.Selesai, req.Mulai) <= 0)
+            if (string.CompareOrdinal(req.selesai, req.mulai) <= 0)
                 return BadRequest("Waktu selesai harus lebih besar dari waktu mulai.");
 
-            // Cek 1: Bentrok Guru?
-            var conflictGuru = await _db.HasScheduleConflictAsync(req.GuruId, req.Hari, mulai, selesai, null);
-            if (conflictGuru)
-                return Conflict(new { message = "Bentrok: Guru tersebut sedang mengajar di kelas lain pada jam ini." });
+            // Cek 1: Bentrok guru?
+            var conflictguru = await _db.HasScheduleConflictAsync(req.guruid, req.hari, mulai, selesai, null);
+            if (conflictguru)
+                return Conflict(new { message = "Bentrok: guru tersebut sedang mengajar di kelas lain pada jam ini." });
 
-            // Cek 2: Bentrok Kelas? (TAMBAHAN)
-            var conflictKelas = await _db.HasClassScheduleConflictAsync(req.KelasId, req.Hari, mulai, selesai, null);
-            if (conflictKelas)
-                return Conflict(new { message = "Bentrok: Kelas ini sudah memiliki jadwal pelajaran lain pada jam ini." });
+            // Cek 2: Bentrok kelas? (TAMBAHAN)
+            var conflictkelas = await _db.HasClassScheduleConflictAsync(req.kelasid, req.hari, mulai, selesai, null);
+            if (conflictkelas)
+                return Conflict(new { message = "Bentrok: kelas ini sudah memiliki jadwal pelajaran lain pada jam ini." });
 
-            var newId = await _db.CreateJadwalAsync(
-                req.GuruId, req.Mapel, req.Hari, mulai, selesai, req.KelasId, req.Ruangan
+            var newid = await _db.CreateJadwalAsync(
+                req.guruid, req.mapel, req.hari, mulai, selesai, req.kelasid, req.ruangan
             );
 
-            return Ok(new { Id = newId });
+            return Ok(new { id = newid });
         }
 
         [HttpPost("create")]
         public Task<IActionResult> CreateAlias([FromBody] CreateReq req) => Create(req);
 
-        //UPDATE JADWAL
+        //UPDATE jadwal
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] CreateReq req)
         {
             if (req is null) return BadRequest("Body kosong.");
 
-            if (!TryParseTime(req.Mulai, out var mulai) || !TryParseTime(req.Selesai, out var selesai))
+            if (!TryParseTime(req.mulai, out var mulai) || !TryParseTime(req.selesai, out var selesai))
                 return BadRequest("Format waktu salah. Gunakan 'HH:mm' (mis. 07:00).");
 
-            if (string.CompareOrdinal(req.Selesai, req.Mulai) <= 0)
+            if (string.CompareOrdinal(req.selesai, req.mulai) <= 0)
                 return BadRequest("Waktu selesai harus lebih besar dari waktu mulai.");
 
-            // Cek 1: Bentrok Guru? (Exclude ID yang sedang diedit)
-            var conflictGuru = await _db.HasScheduleConflictAsync(req.GuruId, req.Hari, mulai, selesai, id);
-            if (conflictGuru)
-                return Conflict(new { message = "Bentrok: Guru tersebut sedang mengajar di kelas lain pada jam ini." });
+            // Cek 1: Bentrok guru? (Exclude id yang sedang diedit)
+            var conflictguru = await _db.HasScheduleConflictAsync(req.guruid, req.hari, mulai, selesai, id);
+            if (conflictguru)
+                return Conflict(new { message = "Bentrok: guru tersebut sedang mengajar di kelas lain pada jam ini." });
 
-            // Cek 2: Bentrok Kelas? (Exclude ID yang sedang diedit) (TAMBAHAN)
-            var conflictKelas = await _db.HasClassScheduleConflictAsync(req.KelasId, req.Hari, mulai, selesai, id);
-            if (conflictKelas)
-                return Conflict(new { message = "Bentrok: Kelas ini sudah memiliki jadwal pelajaran lain pada jam ini." });
+            // Cek 2: Bentrok kelas? (Exclude id yang sedang diedit) (TAMBAHAN)
+            var conflictkelas = await _db.HasClassScheduleConflictAsync(req.kelasid, req.hari, mulai, selesai, id);
+            if (conflictkelas)
+                return Conflict(new { message = "Bentrok: kelas ini sudah memiliki jadwal pelajaran lain pada jam ini." });
 
             var affected = await _db.UpdateJadwalAsync(
-                id, req.GuruId, req.Mapel, req.Hari, mulai, selesai, req.KelasId, req.Ruangan
+                id, req.guruid, req.mapel, req.hari, mulai, selesai, req.kelasid, req.ruangan
             );
 
             if (affected == 0) return NotFound();

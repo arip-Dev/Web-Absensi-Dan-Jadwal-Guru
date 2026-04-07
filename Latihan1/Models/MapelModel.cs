@@ -1,9 +1,9 @@
 ﻿namespace Latihan1.Models
 {
-    public class MapelModel
+    public class mapelModel
     {
-        public int Id { get; set; }
-        public string Kode { get; set; } = string.Empty; // <— tambahkan
-        public string Nama { get; set; } = string.Empty;
+        public int id { get; set; }
+        public string kode { get; set; } = string.Empty; // <— tambahkan
+        public string nama { get; set; } = string.Empty;
     }
 }

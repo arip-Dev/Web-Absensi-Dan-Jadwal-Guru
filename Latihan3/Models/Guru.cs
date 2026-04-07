@@ -2,14 +2,14 @@
 
 namespace Latihan3.Models
 {
-    public class Guru
+    public class guru
     {
         [Key]
-        public int Id { get; set; }
+        public int id { get; set; }
 
-        public string? Nama { get; set; }
+        public string? nama { get; set; }
 
-        public string? NIP { get; set; }
+        public string? nip { get; set; }
 
         // Tambahkan properti lain jika ada di tabel database Anda (misal Alamat, NoHP), 
         // tapi untuk fitur ini, 3 di atas sudah cukup.

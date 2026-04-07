@@ -37,10 +37,10 @@ namespace Latihan3.Controllers
             // 1. CEK: Apakah Cookie berhasil dibaca?
             if (User.Identity?.IsAuthenticated == true)
             {
-                // Jika sudah login tapi bukan Admin (berarti Guru)
+                // Jika sudah login tapi bukan Admin (berarti guru)
                 if (!User.IsInRole("Admin"))
                 {
-                    ViewBag.Error = "Akses Ditolak: Akun Anda (Guru) tidak diizinkan mengakses halaman manajemen ini.";
+                    ViewBag.Error = "Akses Ditolak: Akun Anda (guru) tidak diizinkan mengakses halaman manajemen ini.";
                     return View();
                 }
 
@@ -60,11 +60,11 @@ namespace Latihan3.Controllers
         }
 
         [HttpGet("Denied")]
-        [Authorize] // Hanya bisa diakses oleh user yang sudah login (dalam hal ini Guru)
+        [Authorize] // Hanya bisa diakses oleh user yang sudah login (dalam hal ini guru)
         public IActionResult Denied()
         {
-            // SKENARIO: User SUDAH LOGIN (Guru) tapi mencoba menembak URL Admin
-            ViewBag.Error = "Akses Ditolak: Akun Anda (Guru) tidak diizinkan mengakses halaman manajemen ini.";
+            // SKENARIO: User SUDAH LOGIN (guru) tapi mencoba menembak URL Admin
+            ViewBag.Error = "Akses Ditolak: Akun Anda (guru) tidak diizinkan mengakses halaman manajemen ini.";
 
             // Kita kembalikan ke View Login agar user bisa melihat pesan errornya
             return View("Login");
@@ -76,7 +76,7 @@ namespace Latihan3.Controllers
         public async Task<IActionResult> Login(string nip, string password)
         {
             // 1. Cek User & Password
-            var storedHash = await _db.GetPasswordHashByUsernameAsync(nip);
+            var storedHash = await _db.GetpasswordhashByUsernameAsync(nip);
             if (string.IsNullOrEmpty(storedHash))
             {
                 ViewBag.Error = "User tidak ditemukan.";
@@ -90,26 +90,26 @@ namespace Latihan3.Controllers
                 return View();
             }
 
-            // 2. CEK ROLE DARI DATABASE (Kunci Keamanan)
+            // 2. CEK role DARI DATABASE (Kunci Keamanan)
             var role = await _db.GetUserRoleAsync(nip);
             if (role != "Admin")
             {
-                // Jika yang login adalah GURU, blokir di sini!
-                ViewBag.Error = "Akses Ditolak: Akun Guru tidak diizinkan mengakses Absensi.";
+                // Jika yang login adalah guru, blokir di sini!
+                ViewBag.Error = "Akses Ditolak: Akun guru tidak diizinkan mengakses Absensi.";
                 return View();
             }
 
             // 3. Jika Lolos (Berarti dia Admin)
-            int? guruId = await _db.GetGuruIdByNipAsync(nip);
+            int? guruid = await _db.GetguruidBynipAsync(nip);
             var claims = new List<Claim>
     {
         new Claim(ClaimTypes.Name, nip),
         new Claim(ClaimTypes.Role, "Admin"), // Set as Admin
-        new Claim("GuruId", guruId?.ToString() ?? "0")
+        new Claim("guruid", guruid?.ToString() ?? "0")
     };
 
-            var identity = new ClaimsIdentity(claims, "CookieSekolah");
-            await HttpContext.SignInAsync("CookieSekolah", new ClaimsPrincipal(identity));
+            var Identity = new ClaimsIdentity(claims, "CookieSekolah");
+            await HttpContext.SignInAsync("CookieSekolah", new ClaimsPrincipal(Identity));
 
             return RedirectToAction("Index", "Absensi");
         }
@@ -142,7 +142,7 @@ namespace Latihan3.Controllers
 
                 if (role != "Admin")
                 {
-                    // Jika Guru mencoba masuk, lempar ke halaman Denied atau Login dengan pesan error
+                    // Jika guru mencoba masuk, lempar ke halaman Denied atau Login dengan pesan error
                     ViewBag.Error = "Akses Ditolak: Halaman ini hanya untuk Admin.";
                     return View("Login");
                 }
@@ -153,8 +153,8 @@ namespace Latihan3.Controllers
                     new Claim(ClaimTypes.Role, role)
                 };
 
-                var identity = new ClaimsIdentity(claims, "CookieSekolah");
-                await HttpContext.SignInAsync("CookieSekolah", new ClaimsPrincipal(identity));
+                var Identity = new ClaimsIdentity(claims, "CookieSekolah");
+                await HttpContext.SignInAsync("CookieSekolah", new ClaimsPrincipal(Identity));
 
                 return RedirectToAction("Index", "Absensi");
             }
@@ -172,12 +172,12 @@ namespace Latihan3.Controllers
             // 1. Ambil data user yang sedang login di Latihan3
             var username = User.Identity?.Name;
             var role = User.FindFirst(ClaimTypes.Role)?.Value;
-            var guruId = User.FindFirst("GuruId")?.Value ?? "0";
+            var guruid = User.FindFirst("guruid")?.Value ?? "0";
 
             if (string.IsNullOrEmpty(username)) return RedirectToAction("Login");
 
             // 2. Buat Token JWT (Gunakan SecretKey yang sama dengan Latihan1)
-            var token = GenerateJwtToken(username, role ?? "Admin", guruId);
+            var token = GenerateJwtToken(username, role ?? "Admin", guruid);
 
             // 3. Arahkan ke endpoint penerima token di Latihan1
             var loginUrl = _config["Latihan1:LoginUrl"]; // "http://.../Auth/Login"
@@ -187,7 +187,7 @@ namespace Latihan3.Controllers
             return Redirect($"{baseUrl}/Auth/SsoAcceptor?token={token}");
         }
 
-        private string GenerateJwtToken(string username, string role, string guruId)
+        private string GenerateJwtToken(string username, string role, string guruid)
         {
             var secretKey = _config["JwtSettings:SecretKey"];
             var keyBytes = Encoding.UTF8.GetBytes(secretKey!);
@@ -195,7 +195,7 @@ namespace Latihan3.Controllers
     {
         new Claim("username", username),
         new Claim("role", role),
-        new Claim("GuruId", guruId)
+        new Claim("guruid", guruid)
     };
 
             var tokenDescriptor = new SecurityTokenDescriptor

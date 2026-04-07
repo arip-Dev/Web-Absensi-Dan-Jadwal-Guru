@@ -5,13 +5,14 @@
     ViewData["Title"] = "Admin Dashboard";
     string TodayISO = DateTime.Today.ToString("yyyy-MM-dd");
 
-    var kelasList = ViewBag.KelasList as List<string> ?? new();
-    var mapelList = ViewBag.MapelList as List<Latihan1.Models.MapelModel> ?? new();
-    int? hariSel = ViewBag.HariSelected as int?;
-    string? kelasSel = ViewBag.KelasSelected as string;
-    int? mapelSel = ViewBag.MapelSelected as int?;
-    int kelasCount = ViewBag.KelasCount ?? 0;
-    int mapelCount = ViewBag.MapelCount ?? 0;
+    var tingkatList = ViewBag.tingkatList as List<string> ?? new();
+    var mapelList = ViewBag.mapelList as List<Latihan1.Models.mapelModel> ?? new();
+    int? hariSel = ViewBag.hariSelected as int?;
+    string? tingkatSel = ViewBag.tingkatSelected as string;
+    string? kelasSel = ViewBag.kelasSelected as string;
+    int? mapelSel = ViewBag.mapelSelected as int?;
+    int kelasCount = ViewBag.kelasCount ?? 0;
+    int mapelCount = ViewBag.mapelCount ?? 0;
 }
 
 <div class="min-h-screen bg-gray-50 text-gray-900">
@@ -39,7 +40,6 @@
         </header>
 
         <main class="mx-auto max-w-7xl px-4 py-6">
-            <!-- Quick stats: ganti 2 kartu tengah -->
             <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div class="rounded-2xl border border-gray-200 bg-white p-4">
                     <p class="text-sm text-gray-500">Sesi (Total)</p>
@@ -48,75 +48,75 @@
                 </div>
 
                 <div class="rounded-2xl border border-gray-200 bg-white p-4">
-                    <p class="text-sm text-gray-500">Guru Aktif</p>
-                    <p class="mt-2 text-2xl font-semibold">@Model.Stats.GuruAktif</p>
+                    <p class="text-sm text-gray-500">guru Aktif</p>
+                    <p class="mt-2 text-2xl font-semibold">@Model.Stats.guruAktif</p>
                     <p class="mt-1 text-xs text-gray-500">Terdata sebagai aktif</p>
                 </div>
 
                 <div class="rounded-2xl border border-gray-200 bg-white p-4">
                     <div class="flex items-baseline justify-between">
                         <div>
-                            <p class="text-sm text-gray-500">Jumlah Kelas</p>
+                            <p class="text-sm text-gray-500">Jumlah kelas</p>
                             <p class="mt-2 text-2xl font-semibold">@kelasCount</p>
                         </div>
-                        <a asp-controller="Kelas" asp-action="Index" class="text-sm text-indigo-600 hover:underline">Lihat semua</a>
+                        <a asp-controller="kelas" asp-action="Index" class="text-sm text-indigo-600 hover:underline">Lihat semua</a>
                     </div>
-                    <p class="mt-1 text-xs text-gray-500">Kelas aktif/terdaftar</p>
+                    <p class="mt-1 text-xs text-gray-500">kelas aktif/terdaftar</p>
                 </div>
 
                 <div class="rounded-2xl border border-gray-200 bg-white p-4">
                     <div class="flex items-baseline justify-between">
                         <div>
-                            <p class="text-sm text-gray-500">Jumlah Mapel</p>
+                            <p class="text-sm text-gray-500">Jumlah mapel</p>
                             <p class="mt-2 text-2xl font-semibold">@mapelCount</p>
                         </div>
-                        <a asp-controller="Mapel" asp-action="Index" class="text-sm text-indigo-600 hover:underline">Lihat semua</a>
+                        <a asp-controller="mapel" asp-action="Index" class="text-sm text-indigo-600 hover:underline">Lihat semua</a>
                     </div>
                     <p class="mt-1 text-xs text-gray-500">Mata pelajaran tersedia</p>
                 </div>
             </section>
 
-            <!-- Main grid -->
             <section class="mt-6 grid gap-6 lg:grid-cols-3">
-                <!-- Jadwal (table) -->
                 <div class="lg:col-span-2 rounded-2xl border border-gray-200 bg-white">
                     <div class="flex flex-col gap-3 border-b border-gray-200 p-4 md:flex-row md:items-center md:justify-between">
-                        <h2 class="text-base font-semibold">Jadwal Mendatang</h2>
+                        <h2 class="text-base font-semibold">jadwal Mendatang</h2>
 
-                        <!-- FILTER di dalam kartu -->
                         <form method="get" asp-controller="Admin" asp-action="Admin_page"
                               class="flex flex-wrap items-center gap-2">
-                            <!-- Kelas -->
-                            <select name="kelas"
+                              
+                            <select name="tingkat" id="tingkatSelect" onchange="updateKelasDropdown()"
                                     class="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm focus:ring-2 focus:ring-indigo-500">
-                                <option value="">Semua Kelas</option>
-                                @foreach (var k in (ViewBag.KelasList as List<string> ?? new()))
+                                <option value="">Semua Tingkat</option>
+                                @foreach (var t in tingkatList)
                                 {
-                                    <option value="@k" selected="@(string.Equals(k, (string?)ViewBag.KelasSelected, StringComparison.OrdinalIgnoreCase) ? "selected" : null)">@k</option>
+                                    <option value="@t" selected="@(string.Equals(t, tingkatSel, StringComparison.OrdinalIgnoreCase) ? "selected" : null)">Kelas @t</option>
                                 }
                             </select>
 
-                            <!-- Mapel -->
-                            <select name="mapelId"
+                            <select name="kelas" id="kelasSelect"
                                     class="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm focus:ring-2 focus:ring-indigo-500">
-                                <option value="">Semua Mapel</option>
-                                @foreach (var m in (ViewBag.MapelList as List<Latihan1.Models.MapelModel> ?? new()))
+                                <option value="">Semua kelas</option>
+                                </select>
+
+                            <select name="mapelid"
+                                    class="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm focus:ring-2 focus:ring-indigo-500">
+                                <option value="">Semua mapel</option>
+                                @foreach (var m in mapelList)
                                 {
-                                    <option value="@m.Id" selected="@( (int?)ViewBag.MapelSelected == m.Id ? "selected" : null )">@m.Nama</option>
+                                    <option value="@m.id" selected="@( mapelSel == m.id ? "selected" : null )">@m.nama</option>
                                 }
                             </select>
 
-                            <!-- Hari -->
                             <select name="hari"
                                     class="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm focus:ring-2 focus:ring-indigo-500">
-                                <option value="">Semua Hari</option>
-                                <option value="1" selected="@( (int?)ViewBag.HariSelected == 1 ? "selected" : null )">Senin</option>
-                                <option value="2" selected="@( (int?)ViewBag.HariSelected == 2 ? "selected" : null )">Selasa</option>
-                                <option value="3" selected="@( (int?)ViewBag.HariSelected == 3 ? "selected" : null )">Rabu</option>
-                                <option value="4" selected="@( (int?)ViewBag.HariSelected == 4 ? "selected" : null )">Kamis</option>
-                                <option value="5" selected="@( (int?)ViewBag.HariSelected == 5 ? "selected" : null )">Jumat</option>
-                                <option value="6" selected="@( (int?)ViewBag.HariSelected == 6 ? "selected" : null )">Sabtu</option>
-                                <option value="7" selected="@( (int?)ViewBag.HariSelected == 7 ? "selected" : null )">Minggu</option>
+                                <option value="">Semua hari</option>
+                                <option value="1" selected="@( hariSel == 1 ? "selected" : null )">Senin</option>
+                                <option value="2" selected="@( hariSel == 2 ? "selected" : null )">Selasa</option>
+                                <option value="3" selected="@( hariSel == 3 ? "selected" : null )">Rabu</option>
+                                <option value="4" selected="@( hariSel == 4 ? "selected" : null )">Kamis</option>
+                                <option value="5" selected="@( hariSel == 5 ? "selected" : null )">Jumat</option>
+                                <option value="6" selected="@( hariSel == 6 ? "selected" : null )">Sabtu</option>
+                                <option value="7" selected="@( hariSel == 7 ? "selected" : null )">Minggu</option>
                             </select>
 
                             <button class="h-10 rounded-xl bg-gray-900 px-4 text-sm text-white hover:bg-gray-800">Terapkan</button>
@@ -129,39 +129,39 @@
                         <table class="min-w-full text-left text-sm">
                             <thead class="sticky top-0 bg-white">
                                 <tr class="border-b border-gray-200 text-gray-600">
-                                    <th class="px-4 py-3">Tanggal</th>
+                                    <th class="px-4 py-3">tanggal</th>
                                     <th class="px-4 py-3">Waktu</th>
-                                    <th class="px-4 py-3">Guru</th>
-                                    <th class="px-4 py-3">Mapel</th>
-                                    <th class="px-4 py-3">Kelas</th>
-                                    <th class="px-4 py-3">Ruangan</th>
-                                    <th class="px-4 py-3">Status</th>
+                                    <th class="px-4 py-3">guru</th>
+                                    <th class="px-4 py-3">mapel</th>
+                                    <th class="px-4 py-3">kelas</th>
+                                    <th class="px-4 py-3">ruangan</th>
+                                    <th class="px-4 py-3">status</th>
                                     <th class="px-4 py-3"></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @if (Model.UpcomingSessions?.Any() == true)
                                 {
-                                    foreach (var s in Model.UpcomingSessions.OrderBy(x => x.Tanggal).ThenBy(x => x.Mulai))
+                                    foreach (var s in Model.UpcomingSessions.OrderBy(x => x.tanggal).ThenBy(x => x.mulai))
                                     {
-                                        var isConflict = string.Equals(s.Status, "Konflik", StringComparison.OrdinalIgnoreCase);
+                                        var isConflict = string.Equals(s.status, "Konflik", StringComparison.OrdinalIgnoreCase);
                                         <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                            <td class="px-4 py-3">@s.Tanggal.ToString("ddd, dd MMM", new CultureInfo("id-ID"))</td>
-                                            <td class="px-4 py-3">@s.Mulai - @s.Selesai</td>
-                                            <td class="px-4 py-3">@s.Guru</td>
-                                            <td class="px-4 py-3">@s.Mapel</td>
-                                            <td class="px-4 py-3">@s.Kelas</td>
+                                            <td class="px-4 py-3">@s.tanggal.ToString("ddd, dd MMM", new CultureInfo("id-id"))</td>
+                                            <td class="px-4 py-3">@s.mulai - @s.selesai</td>
+                                            <td class="px-4 py-3">@s.guru</td>
+                                            <td class="px-4 py-3">@s.mapel</td>
+                                            <td class="px-4 py-3">@s.kelas</td>
                                             <td class="px-4 py-3">@s.Ruang</td>
                                             <td class="px-4 py-3">
                                                 <span class="inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs @(isConflict ? "bg-red-50 text-red-700 ring-1 ring-red-200" : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200")">
                                                     <span class="h-1.5 w-1.5 rounded-full @(isConflict ? "bg-red-600" : "bg-emerald-600")"></span>
-                                                    @s.Status
+                                                    @s.status
                                                 </span>
                                             </td>
                                             <td class="px-4 py-3">
                                                 <div class="flex items-center gap-2">
                                                     <a class="rounded-lg px-2 py-1 text-xs hover:bg-gray-100"
-                                                       asp-controller="BuatJadwal" asp-action="BuatJadwal" asp-route-id="@s.Id">Edit</a>
+                                                       asp-controller="Buatjadwal" asp-action="Buatjadwal" asp-route-id="@s.id">Edit</a>
                                                 </div>
                                             </td>
                                         </tr>
@@ -176,11 +176,10 @@
                     </div>
                 </div>
 
-                <!-- Sidebar kanan -->
                 <div class="space-y-6">
                     <div class="rounded-2xl border border-gray-200 bg-white">
                         <div class="flex items-center justify-between border-b border-gray-200 p-4">
-                            <h3 class="text-base font-semibold">Guru & Beban Mengajar</h3>
+                            <h3 class="text-base font-semibold">guru & Beban Mengajar</h3>
                             <a asp-controller="Dataguru" asp-action="Teacher_data" class="text-sm text-indigo-600 hover:underline">Lihat semua</a>
                         </div>
                         <ul class="divide-y divide-gray-100">
@@ -192,8 +191,8 @@
                                     <li class="p-4">
                                         <div class="flex items-start justify-between">
                                             <div>
-                                                <p class="font-medium">@t.Nama</p>
-                                                <p class="text-xs text-gray-500">@t.Mapel</p>
+                                                <p class="font-medium">@t.nama</p>
+                                                <p class="text-xs text-gray-500">@t.mapel</p>
                                             </div>
                                             <span class="text-sm">@t.Load/@t.MaxLoad jp</span>
                                         </div>
@@ -216,6 +215,7 @@
 </div>
 
 <script>
+    // ===== FUNGSI SIDEBAR =====
     function toggleSidebar() {
         const el = document.getElementById('sidebar');
         const hidden = el?.style.transform?.includes('-translateX') || el?.classList.contains('-translate-x-full');
@@ -228,4 +228,28 @@
     window.addEventListener('resize', () => {
         if (window.innerWidth >= 1024) document.getElementById('sidebar')?.classList.remove('-translate-x-full');
     });
+
+    // ===== FUNGSI FILTER KELAS BERTINGKAT (CASCADING DROPDOWN) =====
+    const kelasData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.kelasDict ?? new Dictionary<string, List<string>>()));
+    const preselectedKelas = "@(kelasSel ?? "")";
+
+    function updateKelasDropdown() {
+        const tingkatSelect = document.getElementById("tingkatSelect");
+        const kelasSelect = document.getElementById("kelasSelect");
+        const selectedTingkat = tingkatSelect.value;
+
+        // Bersihkan dropdown kelas setiap kali tingkatan diganti
+        kelasSelect.innerHTML = '<option value="">Semua kelas</option>';
+
+        // Jika tingkatan dipilih dan data kelasnya ada, isi dropdown kelas
+        if (selectedTingkat && kelasData[selectedTingkat]) {
+            kelasData[selectedTingkat].forEach(kelasNama => {
+                const isSelected = (kelasNama === preselectedKelas) ? "selected" : "";
+                kelasSelect.innerHTML += `<option value="${kelasNama}" ${isSelected}>${kelasNama}</option>`;
+            });
+        }
+    }
+
+    // Jalankan satu kali saat halaman pertama dimuat agar memunculkan pilihan sebelumnya (jika ada)
+    updateKelasDropdown();
 </script>

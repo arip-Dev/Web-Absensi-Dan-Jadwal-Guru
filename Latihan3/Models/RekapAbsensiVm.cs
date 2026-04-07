@@ -2,8 +2,8 @@
 {
     public class RekapAbsensiVm
     {
-        public string NamaGuru { get; set; }
-        public string NIP { get; set; }
+        public string namaguru { get; set; }
+        public string nip { get; set; }
         public int Hadir { get; set; }
         public int Sakit { get; set; }
         public int Izin { get; set; }

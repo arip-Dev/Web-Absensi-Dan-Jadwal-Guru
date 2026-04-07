@@ -1,10 +1,9 @@
-﻿@model Latihan1.Models.GuruModel
+﻿@model Latihan1.Models.guruModel
 @using Microsoft.AspNetCore.Mvc.Rendering
 @using System.Linq
 @{
-    ViewData["Title"] = "Tambah Guru";
-    var mapelList = ViewBag.MapelList as IEnumerable<SelectListItem>
-                    ?? Enumerable.Empty<SelectListItem>();
+    ViewData["Title"] = "Tambah guru";
+    var mapelList = ViewBag.mapelList as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <div class="mx-auto max-w-4xl px-4 py-6">
@@ -12,7 +11,7 @@
         <!-- Header -->
         <div class="flex items-center justify-between gap-3 border-b border-slate-200 px-6 py-4">
             <div>
-                <h1 class="text-lg font-semibold tracking-tight">Tambah Guru</h1>
+                <h1 class="text-lg font-semibold tracking-tight">Tambah guru</h1>
                 <p class="text-xs text-slate-500">Isi data guru dengan lengkap lalu simpan.</p>
             </div>
             <a asp-controller="Dataguru" asp-action="Teacher_data"
@@ -34,21 +33,21 @@
               class="px-6 py-5 space-y-5">
             @Html.AntiForgeryToken()
 
-            <!-- Nama & Mapel -->
+            <!-- nama & mapel -->
             <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
                 <div>
-                    <label asp-for="Nama" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
-                        Nama
+                    <label asp-for="nama" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+                        nama
                     </label>
-                    <input asp-for="Nama"
+                    <input asp-for="nama"
                            class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm
                       focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200" />
-                    <span asp-validation-for="Nama" class="mt-1 block text-sm text-red-600"></span>
+                    <span asp-validation-for="nama" class="mt-1 block text-sm text-red-600"></span>
                 </div>
 
-                <!-- Multi-select Mapel (dropdown + search + badge) -->
+                <!-- Multi-select mapel (dropdown + search + badge) -->
                 <div class="relative">
-                    <label asp-for="MapelIds" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+                    <label asp-for="mapelids" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
                         Mata Pelajaran
                     </label>
 
@@ -59,12 +58,12 @@
                     </div>
 
                     <!-- DROPDOWN -->
-                    <div id="dropdownMapel"
+                    <div id="dropdownmapel"
                          class="hidden absolute z-20 mt-1 w-full bg-white border border-slate-300 rounded-xl shadow-lg max-h-64 overflow-y-auto">
 
                         <!-- search -->
                         <div class="p-2 sticky top-0 bg-white border-b border-slate-200">
-                            <input id="searchMapel" type="text"
+                            <input id="searchmapel" type="text"
                                    placeholder="Cari mata pelajaran..."
                                    class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" />
                         </div>
@@ -76,50 +75,50 @@
                         Klik beberapa mata pelajaran untuk memilih lebih dari satu.
                     </p>
 
-                    <span asp-validation-for="MapelIds" class="mt-1 block text-sm text-red-600"></span>
+                    <span asp-validation-for="mapelids" class="mt-1 block text-sm text-red-600"></span>
                 </div>
             </div>
 
-            <!-- NIP & Email -->
+            <!-- nip & email -->
             <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
                 <div>
-                    <label asp-for="NIP" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
-                        NIP
+                    <label asp-for="nip" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+                        nip
                     </label>
-                    <input asp-for="NIP" inputmode="numeric"
+                    <input asp-for="nip" inputmode="numeric"
                            class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm
                                   focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200" />
-                    <span asp-validation-for="NIP" class="mt-1 block text-sm text-red-600"></span>
+                    <span asp-validation-for="nip" class="mt-1 block text-sm text-red-600"></span>
                 </div>
 
                 <div>
-                    <label asp-for="Email" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
-                        Email
+                    <label asp-for="email" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+                        email
                     </label>
-                    <input asp-for="Email" type="email"
+                    <input asp-for="email" type="email"
                            class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm
                                   focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200" />
-                    <span asp-validation-for="Email" class="mt-1 block text-sm text-red-600"></span>
+                    <span asp-validation-for="email" class="mt-1 block text-sm text-red-600"></span>
                 </div>
             </div>
 
-            <!-- Jam Mengajar & Status -->
+            <!-- Jam Mengajar & status -->
             <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
     <div>
-        <label asp-for="JamMengajar" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+        <label asp-for="jammengajar" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
             Jam Mengajar
         </label>
-        <input asp-for="JamMengajar" type="number" disabled
+        <input asp-for="jammengajar" type="number" disabled
                class="mt-1 block w-full rounded-xl border border-slate-300 bg-slate-100 px-3 py-2.5 text-sm shadow-sm cursor-not-allowed" />
-        <input type="hidden" asp-for="JamMengajar" />
-        <span asp-validation-for="JamMengajar" class="mt-1 block text-sm text-red-600"></span>
+        <input type="hidden" asp-for="jammengajar" />
+        <span asp-validation-for="jammengajar" class="mt-1 block text-sm text-red-600"></span>
     </div>
 
     <div>
-        <label asp-for="IsActive" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
-            Status
+        <label asp-for="isactive" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+            status
         </label>
-        <select asp-for="IsActive"
+        <select asp-for="isactive"
                 class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm
                        focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200">
             <option value="true">Aktif</option>
@@ -130,23 +129,23 @@
 
 <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
     <div>
-        <label asp-for="MaxWeeklyLoad" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+        <label asp-for="maxweeklyload" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
             Max Mingguan (jam)
         </label>
-        <input asp-for="MaxWeeklyLoad" type="number" min="0" step="1"
+        <input asp-for="maxweeklyload" type="number" min="0" step="1"
                class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm
                       focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200" />
-        <span asp-validation-for="MaxWeeklyLoad" class="mt-1 block text-sm text-red-600"></span>
+        <span asp-validation-for="maxweeklyload" class="mt-1 block text-sm text-red-600"></span>
     </div>
 
     <div>
-        <label asp-for="MaxDailyLoad" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
-            Max Harian (jam)
+        <label asp-for="maxdailyload" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+            Max harian (jam)
         </label>
-        <input asp-for="MaxDailyLoad" type="number" min="0" step="1"
+        <input asp-for="maxdailyload" type="number" min="0" step="1"
                class="mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm
                       focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200" />
-        <span asp-validation-for="MaxDailyLoad" class="mt-1 block text-sm text-red-600"></span>
+        <span asp-validation-for="maxdailyload" class="mt-1 block text-sm text-red-600"></span>
     </div>
 </div>
 
@@ -183,28 +182,31 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const box        = document.getElementById("mapelBox");
-            const dropdown   = document.getElementById("dropdownMapel");
-            const search     = document.getElementById("searchMapel");
+            const dropdown   = document.getElementById("dropdownmapel");
+            const search     = document.getElementById("searchmapel");
             const list       = document.getElementById("mapelList");
             const placeholder = document.getElementById("placeholder");
 
             if (!box || !dropdown || !search || !list || !placeholder) return;
 
-            // ==== DATA MAPEL DARI SERVER ====
+                    // ==== DATA mapel DARI SERVER ====
             const mapels = [
-            @foreach (var item in mapelList)
-            {
-                    <text>{
-                        id: "@item.Value",
-                        text: "@item.Text"
-                    },</text>
-            }
+                @if (mapelList != null && mapelList.Any())
+                {
+                        foreach (var item in mapelList)
+                        {
+                                <text>{
+                                    id: "@item.Value",
+                                    text: "@item.Text"
+                                },</text>
+                        }
+                }
             ];
 
-            // ==== MAPEL TERPILIH DARI MODEL (kalau post gagal validasi) ====
+            // ==== mapel TERPILIH DARI MODEL (kalau post gagal validasi) ====
             const selectedFromModel = [
             @{
-                    var arr = Model.MapelIds ?? Array.Empty<int>();
+                    var arr = Model.mapelids ?? Array.Empty<int>();
                     for (int i = 0; i < arr.Length; i++)
                     {
                             var comma = i < arr.Length - 1 ? "," : "";
@@ -264,7 +266,7 @@
                 renderDropdown(currentFilter);  // sync ceklis
             }
 
-            // ==== RENDER BADGE + HIDDEN INPUT ====
+            // ==== RENDER BADGE + HidDEN INPUT ====
             function renderSelected() {
                 box.innerHTML = "";
 
@@ -290,7 +292,7 @@
                     // hidden input supaya terkirim ke server
                     const hidden = document.createElement("input");
                     hidden.type  = "hidden";
-                    hidden.name  = "MapelIds";
+                    hidden.name  = "mapelids";
                     hidden.value = id;
                     box.appendChild(hidden);
                 });
