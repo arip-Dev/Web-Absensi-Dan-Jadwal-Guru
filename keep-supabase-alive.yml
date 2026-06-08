@@ -14,6 +14,6 @@ jobs:
     steps:
       - name: Lakukan HTTP Request ke Supabase REST API
         run: |
-          curl -X GET 'https://mszdvjwlilfjgmvhnvjo.supabase.co/rest/v1/projects?select=*&limit=1' \
+          curl -X GET 'https://lydgjdwljbjekvkonzce.supabase.co/rest/v1/users?select=*&limit=1' \
           -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
           -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
