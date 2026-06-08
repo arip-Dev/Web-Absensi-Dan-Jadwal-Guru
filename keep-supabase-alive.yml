@@ -1,0 +1,19 @@
+name: Ping Supabase Database
+
+# Jadwal untuk menjalankan ping
+on:
+  schedule:
+    # Berjalan setiap hari pada jam 00:00 UTC
+    - cron: "0 0 * * *"
+  # Memungkinkan Anda menjalankan script ini secara manual dari tombol di Github
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lakukan HTTP Request ke Supabase REST API
+        run: |
+          curl -X GET 'https://[PROJECT-ID-ANDA].supabase.co/rest/v1/[NAMA-TABEL-ANDA]?select=*&limit=1' \
+          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
